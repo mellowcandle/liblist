@@ -30,10 +30,10 @@ typedef bool (* equal )(llist_node, void * data);
 llist		llist_create ( comperator compare_func, equal equal_func);
 void		llist_destroy (llist list);
 
-int			llist_add_node (llist list, llist_node node, int flags);
+int		llist_add_node (llist list, llist_node node, int flags);
 int 		llist_insert_node (llist list,  llist_node new_node, llist_node pos_node, int flags);
 
-int			llist_delete_node (llist list, llist_node node);
+int		llist_delete_node (llist list, llist_node node);
 llist_node	llist_find_node (llist list, void * data, equal alternative);
 
 int 		llist_for_each(llist list, node_func func );
