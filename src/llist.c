@@ -23,6 +23,7 @@ typedef struct
         _list_node * head;
     } _llist;
 
+
 llist llist_create(comperator compare_func, equal equal_func)
 {
     _llist * new_list;
