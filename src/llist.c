@@ -45,6 +45,56 @@ llist llist_create ( comperator compare_func, equal equal_func )
 	return new_list;
 }
 
+void		llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
+{
+	_list_node * iterator;
+	_list_node * next;
+
+	if ( list == NULL )
+	{
+		return;
+	}
+
+	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
+
+	// Delete the data contained in the nodes
+	iterator = ( ( _llist * ) list )->head;
+
+	while ( iterator != NULL )
+	{
+
+		if ( destroy_nodes )
+		{
+
+			if ( destructor )
+			{
+				destructor ( iterator->node );
+			}
+			else
+			{
+				free ( iterator->node );
+			}
+		}
+
+		next = iterator->next;
+
+		free ( iterator ); // Delete's the container
+
+		iterator = next;
+	}
+
+	// OK, now the linked list is caput, let's delete the actual list pointer
+
+	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
+	pthread_mutex_destroy ( & ( ( _llist * ) list )->mutex );
+
+	free ( list );
+
+	return;
+
+}
+
+
 int llist_add_node ( llist list, llist_node node, int flags )
 {
 	_list_node * node_wrapper = NULL;
@@ -160,7 +210,7 @@ int llist_delete_node ( llist list, llist_node node )
 	return LLIST_ERROR;
 }
 
-//TODO: Add multithread support here
+
 int llist_for_each ( llist list, node_func func )
 {
 	_list_node * iterator;
@@ -173,12 +223,16 @@ int llist_for_each ( llist list, node_func func )
 
 	iterator = ( ( _llist * ) list )->head;
 
+	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
+
 	while ( iterator != NULL )
 	{
 		assert ( iterator->node != NULL );
 		func ( iterator->node );
 		iterator = iterator->next;
 	}
+
+	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
 
 	return LLIST_SUCCESS;
 }

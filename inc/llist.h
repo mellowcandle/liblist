@@ -41,8 +41,11 @@ llist		llist_create ( comperator compare_func, equal equal_func );
 /**
  * @brief Destroys a list
  * @param list The list to destroy
+ * @param bool true if the nodes should be destryed, false if not
+ * @param node_func destructor, if the previous param is true,
+ *					if NULL is provided standard library c free() will be used
  */
-void		llist_destroy ( llist list );
+void		llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
 
 
 /**
@@ -97,6 +100,22 @@ int 		llist_for_each ( llist list, node_func func );
  * @param flags
  * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
  */
-int		llist_sort ( llist list, comperator alternative, int flags );
+int			llist_sort ( llist list, comperator alternative, int flags );
+
+llist_node	llist_get_head (llist list);
+llist_node	llist_get_tail	(llist list);
+
+
+static inline 
+int			llist_push	(llist list, llist_node node)
+{
+	return llist_add_node ( list, node, ADD_NODE_FRONT );
+}
+
+static inline 
+llist_node			llist_pop	(llist list)
+{
+	return llist_get_head ( list);
+}
 
 #endif /* LLIST_H_ */
