@@ -27,7 +27,7 @@ typedef void * llist_node;
 // function prototypes
 typedef void ( * node_func ) ( llist_node node );
 typedef int ( * comperator ) ( llist_node first,llist_node second );
-typedef bool ( * equal ) ( llist_node, void * data );
+typedef bool ( * equal ) ( llist_node, llist_node );
 
 
 /**
