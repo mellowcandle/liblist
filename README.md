@@ -8,6 +8,5 @@ Prerequisites
 =============
 libllist will build on any Unix like machine.
 However, in order to run the test suites, check library must be downloaded and installed aswell. http://check.sourceforge.net/
-Generic list management library in C
-
+In order to generate the documentation doxygen must be installed aswell.
 
