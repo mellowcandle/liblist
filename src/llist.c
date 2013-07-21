@@ -4,6 +4,9 @@
 #include <pthread.h>
 #include <assert.h>
 
+
+#define LOG_FUNC_ENTRANCE() printf("%lu: In %s\n", time(NULL), __PRETTY_FUNCTION__);
+
 typedef struct __list_node _list_node;
 
 typedef struct __list_node
@@ -243,6 +246,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 	_list_node * iterator;
 	_list_node * node_wrapper = NULL;
 
+	LOG_FUNC_ENTRANCE();
 	if ( ( list == NULL ) || ( new_node == NULL ) || ( pos_node == NULL ) )
 	{
 		perror ( "NULL argument" );
@@ -318,7 +322,6 @@ llist_node  llist_find_node ( llist list, void * data, equal alternative )
 {
 	_list_node * iterator;
 	equal    actual_equal;
-
 	if ( list == NULL )
 	{
 		perror ( "NULL argument" );
@@ -347,6 +350,8 @@ llist_node  llist_find_node ( llist list, void * data, equal alternative )
 			pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
 			return iterator->node;
 		}
+		
+		iterator = iterator->next;
 	}
 
 	// Didn't find the node
