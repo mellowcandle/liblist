@@ -1,8 +1,8 @@
 SHELL = /bin/sh
 CC    = gcc
 CFLAGS       = -g -Wall -std=gnu99 -Iinclude
-EXTRA_FLAGS  = -fPIC -shared
-LIBFLAGS	 = -fPIC -shared 
+EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
+LIBFLAGS	 = -fPIC -shared -fprofile-arcs
 LDFLAGS	     = -shared -pthread -lcheck
 DEBUGFLAGS   = -O0 -D _DEBUG
 RELEASEFLAGS = -O2 -D NDEBUG -combine -fwhole-program
@@ -34,7 +34,12 @@ $(OBJECTS): $(SOURCES)
 	$(CC) $(CFLAGS) $(EXTRA_FLAGS) -o $@ -c $<
 	
 clean:
-	rm -rf $(TEST_OBJECTS) $(OBJECTS) *~ $(TARGET) $(TEST_TARGET)
+	rm -rf $(TEST_OBJECTS) $(OBJECTS) *.gcda *.gcov *.gcno *~ $(TARGET) $(TEST_TARGET)
 	
 runtests:
-	./$(TEST_TARGET)
+	@echo Invoking Test:
+	@echo --------------
+	@./$(TEST_TARGET)
+	@echo Test Coverage:
+	@echo --------------
+	@gcov -osrc llist.c
