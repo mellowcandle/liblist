@@ -1,11 +1,19 @@
 /*
- * llist.h
+ *    Copyright [2013] [Ramon Fried] <ramon.fried at gmail dot com>
  *
- *  Created on: Jan 2, 2013
- *      Author: Ramon Fried
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
  */
-
-
 
 #ifndef LLIST_H_
 #define LLIST_H_
@@ -72,9 +80,10 @@ int 		llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node,
  * @brief Delete a node from a list
  * @param llist the list to operator upon
  * @param llist_node the node to delete
+ * @param equal an alternative eqauality function
  * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
  */
-int			llist_delete_node ( llist list, llist_node node );
+int			llist_delete_node ( llist list, llist_node node, equal alternative );
 
 /**
  * @brief Finds a node in a list
