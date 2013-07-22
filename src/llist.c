@@ -153,14 +153,26 @@ int llist_add_node ( llist list, llist_node node, int flags )
 	return LLIST_SUCCESS;
 }
 
-int llist_delete_node ( llist list, llist_node node )
+int llist_delete_node ( llist list, llist_node node, equal alternative )
 {
 	_list_node * iterator;
 	_list_node * temp;
-
+	equal    actual_equal;
+	
 	if ( ( list == NULL ) || ( node == NULL ) )
 	{
 		perror ( "NULL argument" );
+		return LLIST_ERROR;
+	}
+	
+	actual_equal = ( ( _llist * ) list )->equal_func;
+
+	if ( alternative )
+		actual_equal =  alternative;
+
+	if ( actual_equal == NULL )
+	{
+		perror ( "equal function was not provided in init or alternative" );
 		return LLIST_ERROR;
 	}
 
@@ -169,7 +181,7 @@ int llist_delete_node ( llist list, llist_node node )
 	iterator = ( ( _llist * ) list )->head;
 
 	// is it the first node ?
-	if ( iterator->node == node )
+	if ( actual_equal(iterator->node,node) )
 	{
 		( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
 		free ( iterator );
@@ -184,7 +196,7 @@ int llist_delete_node ( llist list, llist_node node )
 	{
 		while ( iterator->next != NULL )
 		{
-			if ( iterator->next->node == node )
+			if ( actual_equal(iterator->next->node, node) )
 			{
 				// found it
 				temp = iterator->next;
@@ -246,7 +258,6 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 	_list_node * iterator;
 	_list_node * node_wrapper = NULL;
 
-	LOG_FUNC_ENTRANCE();
 	if ( ( list == NULL ) || ( new_node == NULL ) || ( pos_node == NULL ) )
 	{
 		perror ( "NULL argument" );
