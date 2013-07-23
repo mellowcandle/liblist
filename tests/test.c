@@ -26,6 +26,11 @@ bool trivial_equal ( llist_node node1, llist_node node2)
 	return (node1 == node2);
 }
 
+void trivial_node_func ( llist_node node )
+{
+	int i = (int) node;
+}
+
 START_TEST ( llist_01_create_delete_lists )
 {
 	llist listToTest = NULL;
@@ -163,6 +168,36 @@ START_TEST ( llist_04_delete_nodes )
 END_TEST
 
 
+START_TEST ( llist_05_list_for_each )
+{
+	int retval;
+	llist listToTest = NULL;
+	llist_node * retptr;
+	listToTest = llist_create ( NULL,NULL );
+	
+	// Insert a 5 nodes 1..5
+	retval = llist_add_node(listToTest,(llist_node) 1, ADD_NODE_REAR);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 2, ADD_NODE_REAR);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 3, ADD_NODE_REAR);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 4, ADD_NODE_REAR);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_REAR);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_for_each(listToTest, trivial_node_func);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	llist_destroy(listToTest,false,NULL);
+}
+END_TEST
+
 Suite * liblist_suite ( void )
 {
 	Suite *s = suite_create ( "Lib linked list tester" );
@@ -173,6 +208,7 @@ Suite * liblist_suite ( void )
 	tcase_add_test ( tc_core, llist_02_insert_nodes );
 	tcase_add_test ( tc_core, llist_03_insert_dynamic_nodes );
 	tcase_add_test ( tc_core, llist_04_delete_nodes);
+	tcase_add_test ( tc_core, llist_05_list_for_each);
 	suite_add_tcase ( s, tc_core );
 
 	return s;
