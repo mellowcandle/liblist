@@ -185,7 +185,9 @@ int llist_delete_node ( llist list, llist_node node, equal alternative )
 	actual_equal = ( ( _llist * ) list )->equal_func;
 
 	if ( alternative )
-		actual_equal =  alternative;
+	{
+		actual_equal =  alternative;	
+	}
 
 	if ( actual_equal == NULL )
 	{
