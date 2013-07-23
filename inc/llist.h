@@ -20,8 +20,20 @@
 
 #include <stdbool.h>
 
-#define LLIST_ERROR 1
-#define LLIST_SUCCESS 0
+/** E_LLIST
+* This is the return values most of the llist API return,
+* don't forget to check for success :)
+*/
+typedef enum
+{
+	LLIST_SUCCESS = 0x00, 			/**< Operating success */
+	LLIST_NODE_NOT_FOUND, 			/**< Error: No matching node found*/
+	LLIST_EQUAL_MISSING,			/**< Error: Equal function is missing*/
+	LLIST_COMPERATOR_MISSING,		/**< Error: Comperator function is missing*/
+	LLIST_NULL_ARGUMENT,			/**< Error: NULL argument*/
+	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
+	LLIST_ERROR						/**< Error: Generic error*/
+} E_LLIST;
 
 #define ADD_NODE_FRONT		(1 << 0)
 #define ADD_NODE_REAR		~ADD_NODE_FRONT
@@ -40,76 +52,78 @@ typedef bool ( * equal ) ( llist_node, llist_node );
 
 /**
  * @brief Create a list
- * @param compare_func a function used to compare elements in the list
- * @param equal_func a function used to check if two elements are equal
+ * @param[in] compare_func a function used to compare elements in the list
+ * @param[in] equal_func a function used to check if two elements are equal
  * @return new list if success, NULL on error
  */
-llist		llist_create ( comperator compare_func, equal equal_func );
+llist llist_create ( comperator compare_func, equal equal_func );
 
 /**
  * @brief Destroys a list
- * @param list The list to destroy
- * @param bool true if the nodes should be destryed, false if not
- * @param node_func destructor, if the previous param is true,
+ * @param[in] list The list to destroy
+ * @param[in] bool true if the nodes should be destryed, false if not
+ * @param[in] node_func destructor, if the previous param is true,
  *					if NULL is provided standard library c free() will be used
  */
-void		llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
+void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
 
 
 /**
  * @brief Add a node to a list
- * @param llist the list to operator upon
- * @param llist_node the node to add
- * @param int flags
- * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
+ * @param[in] llist the list to operator upon
+ * @param[in] llist_node the node to add
+ * @param[in] int flags
+ * @return int LLIST_SUCCESS if success
  */
-int			llist_add_node ( llist list, llist_node node, int flags );
+int	llist_add_node ( llist list, llist_node node, int flags );
 
 /**
  * @brief Insert a node at a specific location
- * @param llist the list to operator upon
- * @param llist_node the node to add
- * @param llist_node a position reference node
- * @param int flags
- * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
+ * @param[in] llist the list to operator upon
+ * @param[in] llist_node the node to add
+ * @param[in] llist_node a position reference node
+ * @param[in] int flags
+ * @return int LLIST_SUCCESS if success
  */
-int 		llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, int flags );
+int llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, int flags );
 
 
 /**
  * @brief Delete a node from a list
- * @param llist the list to operator upon
- * @param llist_node the node to delete
- * @param equal an alternative eqauality function
- * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
+ * @param[in] llist the list to operator upon
+ * @param[in] llist_node the node to delete
+ * @param[in] equal an alternative eqauality function
+ * @return int LLIST_SUCCESS if success
  */
-int			llist_delete_node ( llist list, llist_node node, equal alternative );
+int	llist_delete_node ( llist list, llist_node node, equal alternative );
 
 /**
  * @brief Finds a node in a list
- * @param llist the list to operator upon
- * @param void * the data to find
- * @param equal an alternative eqauality function
- * @return llist_node The node if found, NULL on error / not found
+ * @param[in]  llist the list to operator upon
+ * @param[in]  void * the data to find
+ * @param[out] llist_node * a pointer for found node.
+ * 				this pointer can be used only if llist_find_node returned LLIST_SUCCESS
+ * @param[in] equal an alternative eqauality function
+ * @return LLIST_SUCCESS if success
  */
-llist_node	llist_find_node ( llist list, void * data, equal alternative );
+int llist_find_node ( llist list, void * data, llist_node * found, equal alternative );
 
 /**
  * @brief operate on each element of the list
- * @param llist the list to operator upon
- * @param node_func the function to perform
- * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
+ * @param[in] llist the list to operator upon
+ * @param[in] node_func the function to perform
+ * @return int LLIST_SUCCESS if success
  */
-int 		llist_for_each ( llist list, node_func func );
+int llist_for_each ( llist list, node_func func );
 
 /**
  * @brief sort a lists
- * @param list
- * @param alternative if unless an alternative comperator function is provided the default will be used
- * @param flags
- * @return int LLIST_SUCCESS if success, LLIST_ERROR on error
+ * @param[in] list
+ * @param[in] alternative if unless an alternative comperator function is provided the default will be used
+ * @param[in] flags
+ * @return int LLIST_SUCCESS if success
  */
-int			llist_sort ( llist list, comperator alternative, int flags );
+int	llist_sort ( llist list, comperator alternative, int flags );
 
 llist_node	llist_get_head (llist list);
 llist_node	llist_get_tail	(llist list);

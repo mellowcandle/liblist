@@ -28,7 +28,8 @@ bool trivial_equal ( llist_node node1, llist_node node2)
 
 void trivial_node_func ( llist_node node )
 {
-	int i = (int) node;
+	int * i = (int *) node;
+	i = i;
 }
 
 START_TEST ( llist_01_create_delete_lists )
@@ -44,7 +45,7 @@ START_TEST ( llist_02_insert_nodes )
 {
 	int retval;
 	llist listToTest = NULL;
-	llist_node * retptr;
+	llist_node retptr;
 	listToTest = llist_create ( NULL,NULL );
 	
 	// Insert a 5 nodes 1..5
@@ -64,16 +65,17 @@ START_TEST ( llist_02_insert_nodes )
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
 	// Find that specific node, this should fail because no equal function was provided
-	retptr = llist_find_node(listToTest,(llist_node) 1, NULL);
-	ck_assert_ptr_eq(retptr,NULL);
-	
+	retval = llist_find_node(listToTest,(llist_node) 1, &retptr, NULL);
+	ck_assert_int_eq(retval,LLIST_EQUAL_MISSING);
+
 	// find again, but this time, let's provide an equals function
-	retptr = llist_find_node(listToTest,(llist_node) 1, trivial_equal);
+	retval = llist_find_node(listToTest,(llist_node) 1, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	ck_assert_ptr_eq(retptr,(llist_node) 1);
 	
 	// find again, but this time, with a non existant node
-	retptr = llist_find_node(listToTest,(llist_node) 6, trivial_equal);
-	ck_assert_ptr_eq(retptr,NULL);
+	retval = llist_find_node(listToTest,(llist_node) 6, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_NODE_NOT_FOUND);
 	
 	llist_destroy(listToTest,false,NULL);
 }
@@ -91,7 +93,7 @@ START_TEST ( llist_03_insert_dynamic_nodes )
 	}
 	
 	llist listToTest = NULL;
-	llist_node * retptr;
+	llist_node retptr;
 	listToTest = llist_create ( NULL,NULL );
 	
 	// Insert a 5 nodes 1..5
@@ -111,7 +113,8 @@ START_TEST ( llist_03_insert_dynamic_nodes )
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
 	// find node
-	retptr = llist_find_node(listToTest,(llist_node) data[2], trivial_equal);
+	retval = llist_find_node(listToTest,(llist_node) data[2], &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	ck_assert_ptr_eq(retptr,(llist_node) data[2]);
 	
 	// destroy list, and also free the data
@@ -123,7 +126,6 @@ START_TEST ( llist_04_delete_nodes )
 {
 	int retval;
 	llist listToTest = NULL;
-	llist_node * retptr;
 	listToTest = llist_create ( NULL,NULL );
 	
 	// Insert a 5 nodes 1..5
@@ -144,7 +146,7 @@ START_TEST ( llist_04_delete_nodes )
 	
 	// This should fail because no equal function was given
 	retval = llist_delete_node(listToTest, (llist_node) 1, NULL);
-	ck_assert_int_eq(retval, LLIST_ERROR);
+	ck_assert_int_eq(retval, LLIST_EQUAL_MISSING);
 	
 	// Delete tail
 	retval = llist_delete_node(listToTest, (llist_node) 1, trivial_equal);
@@ -161,7 +163,7 @@ START_TEST ( llist_04_delete_nodes )
 
 	// Delete a node that doesn't exist
 	retval = llist_delete_node(listToTest, (llist_node) 6, trivial_equal);
-	ck_assert_int_eq(retval, LLIST_ERROR);	
+	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);	
 
 	llist_destroy(listToTest,false,NULL);
 }
@@ -172,7 +174,6 @@ START_TEST ( llist_05_list_for_each )
 {
 	int retval;
 	llist listToTest = NULL;
-	llist_node * retptr;
 	listToTest = llist_create ( NULL,NULL );
 	
 	// Insert a 5 nodes 1..5

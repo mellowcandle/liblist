@@ -49,7 +49,6 @@ llist llist_create ( comperator compare_func, equal equal_func )
 
 	if ( new_list == NULL )
 	{
-		perror ( "Malloc LLIST_ERROR" );
 		return NULL ;
 	}
 
@@ -65,7 +64,7 @@ llist llist_create ( comperator compare_func, equal equal_func )
 	return new_list;
 }
 
-void		llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
+void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 {
 	_list_node * iterator;
 	_list_node * next;
@@ -178,8 +177,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative )
 	
 	if ( ( list == NULL ) || ( node == NULL ) )
 	{
-		perror ( "NULL argument" );
-		return LLIST_ERROR;
+		return LLIST_NULL_ARGUMENT;
 	}
 	
 	actual_equal = ( ( _llist * ) list )->equal_func;
@@ -191,8 +189,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative )
 
 	if ( actual_equal == NULL )
 	{
-		perror ( "equal function was not provided in init or alternative" );
-		return LLIST_ERROR;
+		return LLIST_EQUAL_MISSING;
 	}
 
 	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
@@ -235,8 +232,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative )
 	if ( iterator->next == NULL )
 	{
 		pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-		perror ( "Can't find the node in the list" );
-		return LLIST_ERROR;
+		return LLIST_NODE_NOT_FOUND;
 	}
 
 	assert ( 1==2 );
@@ -251,8 +247,7 @@ int llist_for_each ( llist list, node_func func )
 
 	if ( ( list == NULL ) || ( func == NULL ) )
 	{
-		perror ( "NULL argument" );
-		return LLIST_ERROR;
+		return LLIST_NULL_ARGUMENT;
 	}
 
 	iterator = ( ( _llist * ) list )->head;
@@ -279,16 +274,14 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 
 	if ( ( list == NULL ) || ( new_node == NULL ) || ( pos_node == NULL ) )
 	{
-		perror ( "NULL argument" );
-		return LLIST_ERROR;
+		return LLIST_NULL_ARGUMENT;
 	}
 
 	node_wrapper = malloc ( sizeof ( _list_node ) );
 
 	if ( node_wrapper == NULL )
 	{
-		perror ( "Malloc LLIST_ERROR" );
-		return LLIST_ERROR;
+		return LLIST_MALLOC_ERROR;
 	}
 
 	node_wrapper->node = new_node;
@@ -348,25 +341,25 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 
 }
 
-llist_node  llist_find_node ( llist list, void * data, equal alternative )
+int  llist_find_node ( llist list, void * data, llist_node * found, equal alternative )
 {
 	_list_node * iterator;
 	equal    actual_equal;
 	if ( list == NULL )
 	{
-		perror ( "NULL argument" );
-		return NULL;
+		return LLIST_NULL_ARGUMENT;
 	}
 
 	actual_equal = ( ( _llist * ) list )->equal_func;
 
 	if ( alternative )
+	{
 		actual_equal =  alternative;
+	}
 
 	if ( actual_equal == NULL )
 	{
-		perror ( "equal function was not provided in init or alternative" );
-		return NULL;
+		return LLIST_EQUAL_MISSING;
 	}
 
 	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
@@ -378,7 +371,8 @@ llist_node  llist_find_node ( llist list, void * data, equal alternative )
 		if ( actual_equal ( iterator->node, data ) )
 		{
 			pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-			return iterator->node;
+			*found = iterator->node;
+			return LLIST_SUCCESS;
 		}
 		
 		iterator = iterator->next;
@@ -386,6 +380,6 @@ llist_node  llist_find_node ( llist list, void * data, equal alternative )
 
 	// Didn't find the node
 	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-	return NULL;
+	return LLIST_NODE_NOT_FOUND;
 
 }
