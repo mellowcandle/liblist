@@ -93,9 +93,11 @@ int llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, i
  * @param[in] llist the list to operator upon
  * @param[in] llist_node the node to delete
  * @param[in] equal an alternative eqauality function
+ * @param[in] bool Should we run a destructor
+ * @param[in] destructor function, if NULL is provided, free() will be used
  * @return int LLIST_SUCCESS if success
  */
-int	llist_delete_node ( llist list, llist_node node, equal alternative );
+int llist_delete_node ( llist list, llist_node node, equal alternative, bool destroy_node, node_func destructor );
 
 /**
  * @brief Finds a node in a list
@@ -130,13 +132,13 @@ llist_node	llist_get_tail	(llist list);
 
 
 static inline 
-int			llist_push	(llist list, llist_node node)
+int	llist_push	(llist list, llist_node node)
 {
 	return llist_add_node ( list, node, ADD_NODE_FRONT );
 }
 
 static inline 
-llist_node			llist_pop	(llist list)
+llist_node llist_pop	(llist list)
 {
 	return llist_get_head ( list);
 }

@@ -145,24 +145,24 @@ START_TEST ( llist_04_delete_nodes )
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
 	// This should fail because no equal function was given
-	retval = llist_delete_node(listToTest, (llist_node) 1, NULL);
+	retval = llist_delete_node(listToTest, (llist_node) 1, NULL, false, NULL);
 	ck_assert_int_eq(retval, LLIST_EQUAL_MISSING);
 	
 	// Delete tail
-	retval = llist_delete_node(listToTest, (llist_node) 1, trivial_equal);
+	retval = llist_delete_node(listToTest, (llist_node) 1, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 	
 	
 	// Delete node in the middle
-	retval = llist_delete_node(listToTest, (llist_node) 3, trivial_equal);
+	retval = llist_delete_node(listToTest, (llist_node) 3, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 	
 	// Delete head
-	retval = llist_delete_node(listToTest, (llist_node) 5, trivial_equal);
+	retval = llist_delete_node(listToTest, (llist_node) 5, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	// Delete a node that doesn't exist
-	retval = llist_delete_node(listToTest, (llist_node) 6, trivial_equal);
+	retval = llist_delete_node(listToTest, (llist_node) 6, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);	
 
 	llist_destroy(listToTest,false,NULL);

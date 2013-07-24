@@ -1,5 +1,7 @@
 TODO List:
 ----------
 
-1. Remove perror() and replace it with other funcitonality.
+1. Remove perror() and replace it with other funcitonality.(DONE)
 2. Implement sort function
+3. reach 95% code testing coverage
+

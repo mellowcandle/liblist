@@ -119,18 +119,15 @@ int llist_add_node ( llist list, llist_node node, int flags )
 	_list_node * node_wrapper = NULL;
 	_list_node * iterator;
 
-	if ( ( list == NULL ) || ( node == NULL ) )
+	if ( list == NULL )
 	{
-		//Should we enforce NULL checking for the actual NODE, that worth thinking over again...
-		perror ( "NULL argument" );
-		return LLIST_ERROR;
+		return LLIST_NULL_ARGUMENT;
 	}
 
 	node_wrapper = malloc ( sizeof ( _list_node ) );
 
 	if ( node_wrapper == NULL )
 	{
-		perror ( "Malloc LLIST_ERROR" );
 		return LLIST_ERROR;
 	}
 
@@ -169,7 +166,7 @@ int llist_add_node ( llist list, llist_node node, int flags )
 	return LLIST_SUCCESS;
 }
 
-int llist_delete_node ( llist list, llist_node node, equal alternative )
+int llist_delete_node ( llist list, llist_node node, equal alternative, bool destroy_node, node_func destructor )
 {
 	_list_node * iterator;
 	_list_node * temp;
@@ -199,6 +196,19 @@ int llist_delete_node ( llist list, llist_node node, equal alternative )
 	// is it the first node ?
 	if ( actual_equal(iterator->node,node) )
 	{
+		if (destroy_node)
+		{
+			if (destructor)
+			{
+				destructor(iterator->node);
+			}
+			else
+			{
+				free(iterator->node);
+			}
+					
+		}
+		
 		( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
 		free ( iterator );
 		( ( _llist * ) list )->count--;
@@ -256,7 +266,6 @@ int llist_for_each ( llist list, node_func func )
 
 	while ( iterator != NULL )
 	{
-		assert ( iterator->node != NULL );
 		func ( iterator->node );
 		iterator = iterator->next;
 	}
