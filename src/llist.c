@@ -392,3 +392,34 @@ int  llist_find_node ( llist list, void * data, llist_node * found, equal altern
 	return LLIST_NODE_NOT_FOUND;
 
 }
+
+
+llist_node	llist_get_head (llist list)
+{
+	if (list != NULL)
+	{
+		return ( ( _llist * ) list )->head->node;
+	}
+	
+	return NULL;
+}
+
+llist_node	llist_get_tail	(llist list)
+{
+	_list_node * iterator;
+	
+	if (list != NULL)
+	{
+		iterator = ( ( _llist * ) list )->head;
+		
+		if (iterator != NULL)
+		{
+			while (iterator->next != NULL)
+			{
+				iterator = iterator->next;
+			}
+			return iterator->node;
+		}
+	}
+	return NULL;
+}

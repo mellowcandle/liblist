@@ -127,7 +127,18 @@ int llist_for_each ( llist list, node_func func );
  */
 int	llist_sort ( llist list, comperator alternative, int flags );
 
+/**
+ * @brief Returns the head node of the list
+ * @param list the list to operate on 
+ * @return the head node, NULL on error
+ */
 llist_node	llist_get_head (llist list);
+
+/**
+ * @brief Returns the tail node of the list
+ * @param list the list to operate on
+ * @return the tail node, NULL on error
+ */
 llist_node	llist_get_tail	(llist list);
 
 
