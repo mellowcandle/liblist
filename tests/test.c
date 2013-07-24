@@ -41,7 +41,7 @@ START_TEST ( llist_01_create_delete_lists )
 }
 END_TEST
 
-START_TEST ( llist_02_insert_nodes )
+START_TEST ( llist_02_add_nodes )
 {
 	int retval;
 	llist listToTest = NULL;
@@ -82,7 +82,7 @@ START_TEST ( llist_02_insert_nodes )
 END_TEST
 
 
-START_TEST ( llist_03_insert_dynamic_nodes )
+START_TEST ( llist_03_add_dynamic_nodes )
 {
 	int retval;
 	int *data[5];
@@ -199,6 +199,52 @@ START_TEST ( llist_05_list_for_each )
 }
 END_TEST
 
+
+START_TEST ( llist_06_insert_nodes )
+{
+	int retval;
+	llist listToTest = NULL;
+	llist_node retptr;
+	listToTest = llist_create ( NULL,NULL );
+	
+	// Insert a 5 nodes 1..5
+	retval = llist_add_node(listToTest,(llist_node) 1, ADD_NODE_FRONT);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 2, ADD_NODE_FRONT);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 3, ADD_NODE_FRONT);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 4, ADD_NODE_FRONT);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_FRONT);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	
+	// Find the middle node (3)
+	retval = llist_find_node(listToTest,(llist_node) 3, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+
+	// Add node before
+	retval =  llist_insert_node ( listToTest,  (llist_node) 7, retptr, ADD_NODE_BEFORE );
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+
+	// Add node after
+	retval =  llist_insert_node ( listToTest,  (llist_node) 8, retptr, ADD_NODE_AFTER );
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	/*
+	 * TODO: Check inserting to head and tail
+	 */
+	
+	llist_destroy(listToTest,false,NULL);
+}
+END_TEST
+
+
 Suite * liblist_suite ( void )
 {
 	Suite *s = suite_create ( "Lib linked list tester" );
@@ -206,10 +252,11 @@ Suite * liblist_suite ( void )
 	/* Core test case */
 	TCase *tc_core = tcase_create ( "Core" );
 	tcase_add_test ( tc_core, llist_01_create_delete_lists );
-	tcase_add_test ( tc_core, llist_02_insert_nodes );
-	tcase_add_test ( tc_core, llist_03_insert_dynamic_nodes );
+	tcase_add_test ( tc_core, llist_02_add_nodes );
+	tcase_add_test ( tc_core, llist_03_add_dynamic_nodes );
 	tcase_add_test ( tc_core, llist_04_delete_nodes);
 	tcase_add_test ( tc_core, llist_05_list_for_each);
+	tcase_add_test ( tc_core, llist_06_insert_nodes);
 	suite_add_tcase ( s, tc_core );
 
 	return s;
