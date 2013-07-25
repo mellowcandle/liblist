@@ -412,3 +412,36 @@ llist_node	llist_get_tail	(llist list)
 	
 	return NULL;
 }
+
+int llist_push (llist list, llist_node node)
+{
+	return llist_add_node ( list, node, ADD_NODE_FRONT );
+}
+
+llist_node llist_peek(llist list)
+{
+	return llist_get_head ( list);
+}
+
+llist_node llist_pop(llist list)
+{
+	llist_node tempnode = NULL;
+	_list_node * tempwrapper;
+	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
+	
+	if  ( ( ( _llist * ) list )->count) // There exists at least one node
+	{ 	
+		tempwrapper = ( ( _llist * ) list )->head;
+		tempnode = tempwrapper->node;
+		( ( _llist * ) list )->head  = ( ( _llist * ) list )->head->next;
+		( ( _llist * ) list )->count--;
+		free(( ( _llist * ) list )->head);
+		
+		if (( ( _llist * ) list )->count == 0) // We've deleted the last node
+		{
+			( ( _llist * ) list )->tail = NULL;
+		}
+	}
+	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
+	return tempnode;
+}

@@ -142,16 +142,25 @@ llist_node	llist_get_head (llist list);
 llist_node	llist_get_tail	(llist list);
 
 
-static inline 
-int	llist_push	(llist list, llist_node node)
-{
-	return llist_add_node ( list, node, ADD_NODE_FRONT );
-}
+/**
+ * @brief push a node to the head of the list
+ * @param list the list to operate on 
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_push (llist list, llist_node node);
 
-static inline 
-llist_node llist_pop	(llist list)
-{
-	return llist_get_head ( list);
-}
+/**
+ * @brief peek at the head of the list
+ * @param list the list to operate on 
+ * @return llist_node the head node
+ */
+llist_node llist_peek(llist list);
+
+/**
+ * @brief pop the head of the list
+ * @param list the list to operate on 
+ * @return llist_node the head node
+ */
+llist_node llist_pop(llist list);
 
 #endif /* LLIST_H_ */
