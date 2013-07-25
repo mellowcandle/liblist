@@ -206,6 +206,14 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 		free ( iterator );
 		( ( _llist * ) list )->count--;
 
+		if (( ( _llist * ) list )->count == 0)
+		{
+		/*
+		 *	if we deleted the last node, we need to reset the tail also
+		 *	There's no need to check it somewhere else, because the last node must be the head (and tail)
+		 */
+			( ( _llist * ) list )->tail = NULL;
+		}
 		assert ( ( ( _llist * ) list )->count >= 0 );
 
 		pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
