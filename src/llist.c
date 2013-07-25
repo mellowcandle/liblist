@@ -39,6 +39,7 @@ typedef struct
 	comperator comp_func;
 	equal equal_func;
 	_list_node * head;
+	_list_node * tail;
 } _llist;
 
 
@@ -59,6 +60,7 @@ llist llist_create ( comperator compare_func, equal equal_func )
 // Reset the list
 	new_list->count = 0;
 	new_list->head = NULL;
+	new_list->tail = NULL;
 	pthread_mutex_init ( &new_list->mutex, NULL );
 
 	return new_list;
@@ -117,7 +119,6 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 int llist_add_node ( llist list, llist_node node, int flags )
 {
 	_list_node * node_wrapper = NULL;
-	_list_node * iterator;
 
 	if ( list == NULL )
 	{
@@ -137,7 +138,12 @@ int llist_add_node ( llist list, llist_node node, int flags )
 
 	( ( _llist * ) list )->count++;
 
-	if ( flags & ADD_NODE_FRONT )
+	if (( ( _llist * ) list )->head == NULL)
+	{// Adding the first node, update head and tail to point to that node
+		node_wrapper->next = NULL;
+		( ( _llist * ) list )->head = ( ( _llist * ) list )->tail = node_wrapper;
+	}
+	else if ( flags & ADD_NODE_FRONT )
 	{
 		node_wrapper->next = ( ( _llist * ) list )->head;
 		( ( _llist * ) list )->head = node_wrapper;
@@ -145,21 +151,8 @@ int llist_add_node ( llist list, llist_node node, int flags )
 	else // add node in the rear
 	{
 		node_wrapper->next = NULL;
-		iterator = ( ( _llist * ) list )->head;
-
-		// If the list is empty
-		if ( iterator == NULL )
-			( ( _llist * ) list )->head = node_wrapper;
-		else
-		{
-			while ( iterator->next != NULL )
-			{
-				iterator = iterator->next;
-			}
-
-			iterator->next = node_wrapper;
-		}
-
+		( ( _llist * ) list )->tail->next = node_wrapper;
+		( ( _llist * ) list )->tail = node_wrapper;
 	}
 
 	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
@@ -398,7 +391,10 @@ llist_node	llist_get_head (llist list)
 {
 	if (list != NULL)
 	{
-		return ( ( _llist * ) list )->head->node;
+		if ( ( ( _llist * ) list )->head ) // there's at least one node
+		{
+			return ( ( _llist * ) list )->head->node;
+		}
 	}
 	
 	return NULL;
@@ -406,20 +402,13 @@ llist_node	llist_get_head (llist list)
 
 llist_node	llist_get_tail	(llist list)
 {
-	_list_node * iterator;
-	
 	if (list != NULL)
 	{
-		iterator = ( ( _llist * ) list )->head;
-		
-		if (iterator != NULL)
-		{
-			while (iterator->next != NULL)
-			{
-				iterator = iterator->next;
-			}
-			return iterator->node;
+		if ( ( ( _llist * ) list )->tail ) // there's at least one node
+		{ 
+			return ( ( _llist * ) list )->tail->node;
 		}
 	}
+	
 	return NULL;
 }
