@@ -16,6 +16,7 @@
  */
  
 #include <stdlib.h>
+#include <stdio.h>
 #include <check.h>
 #include "../inc/llist.h"
 
@@ -30,6 +31,18 @@ void trivial_node_func ( llist_node node )
 {
 	int * i = (int *) node;
 	i = i;
+}
+
+void trivial_print_node (llist_node node )
+{
+	int i = (int) node;
+	printf("%d ", i);
+}
+
+void print_llist (llist list)
+{
+	llist_for_each(list, trivial_print_node);
+	printf("\n");
 }
 
 START_TEST ( llist_01_create_delete_lists )
@@ -63,6 +76,9 @@ START_TEST ( llist_02_add_nodes )
 	
 	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_FRONT);
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	printf("List after adding nodes: ");
+	print_llist(listToTest);
 	
 	// Find that specific node, this should fail because no equal function was provided
 	retval = llist_find_node(listToTest,(llist_node) 1, &retptr, NULL);
@@ -144,6 +160,9 @@ START_TEST ( llist_04_delete_nodes )
 	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_FRONT);
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
+	printf("List after adding nodes: ");
+	print_llist(listToTest);
+	
 	// This should fail because no equal function was given
 	retval = llist_delete_node(listToTest, (llist_node) 1, NULL, false, NULL);
 	ck_assert_int_eq(retval, LLIST_EQUAL_MISSING);
@@ -151,16 +170,24 @@ START_TEST ( llist_04_delete_nodes )
 	// Delete tail
 	retval = llist_delete_node(listToTest, (llist_node) 1, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
-	
+
+	printf("List after deleting tail: ");
+	print_llist(listToTest);
 	
 	// Delete node in the middle
 	retval = llist_delete_node(listToTest, (llist_node) 3, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 	
+	printf("List after deleting middle node: ");
+	print_llist(listToTest);
+	
 	// Delete head
 	retval = llist_delete_node(listToTest, (llist_node) 5, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
+	printf("List after deleting head node: ");
+	print_llist(listToTest);
+	
 	// Delete a node that doesn't exist
 	retval = llist_delete_node(listToTest, (llist_node) 6, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);	
@@ -223,19 +250,30 @@ START_TEST ( llist_06_insert_nodes )
 	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_FRONT);
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
+	printf("List after adding nodes: ");
+	print_llist(listToTest);
 	
 	// Find the middle node (3)
 	retval = llist_find_node(listToTest,(llist_node) 3, &retptr, trivial_equal);
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 
+
+// TODO: Fix bug, there's a bug here
+
 	// Add node before
 	retval =  llist_insert_node ( listToTest,  (llist_node) 7, retptr, ADD_NODE_BEFORE );
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 
+	printf("List after adding before 3 node: ");
+	print_llist(listToTest);
+
+	
 	// Add node after
 	retval =  llist_insert_node ( listToTest,  (llist_node) 8, retptr, ADD_NODE_AFTER );
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 	
+	printf("List after adding after 3 node: ");
+	print_llist(listToTest);
 	/*
 	 * TODO: Check inserting to head and tail
 	 */
