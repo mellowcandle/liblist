@@ -257,9 +257,6 @@ START_TEST ( llist_06_insert_nodes )
 	retval = llist_find_node(listToTest,(llist_node) 3, &retptr, trivial_equal);
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
 
-
-// TODO: Fix bug, there's a bug here
-
 	// Add node before
 	retval =  llist_insert_node ( listToTest,  (llist_node) 7, retptr, ADD_NODE_BEFORE );
 	ck_assert_int_eq(retval,LLIST_SUCCESS);
@@ -274,9 +271,37 @@ START_TEST ( llist_06_insert_nodes )
 	
 	printf("List after adding after 3 node: ");
 	print_llist(listToTest);
-	/*
-	 * TODO: Check inserting to head and tail
-	 */
+
+	// insert node at the start of the list (before the first node)
+	retval = llist_find_node(listToTest,(llist_node) 5, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval =  llist_insert_node ( listToTest,  (llist_node) 9, retptr, ADD_NODE_BEFORE );
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	printf("List after adding 9 before the first node: ");
+	print_llist(listToTest);
+	
+	
+	// insert node at the start of the list (after the first node)
+	retval = llist_find_node(listToTest,(llist_node) 9, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval =  llist_insert_node ( listToTest,  (llist_node) 10, retptr, ADD_NODE_AFTER );
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	printf("List after adding 10 after the first node: ");
+	print_llist(listToTest);
+	
+	// insert node at the end of the list (after the first node)
+	retval = llist_find_node(listToTest,(llist_node) 1, &retptr, trivial_equal);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	retval =  llist_insert_node ( listToTest,  (llist_node) 11, retptr, ADD_NODE_AFTER );
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+	
+	printf("List after adding 11 after the last node: ");
+	print_llist(listToTest);
 	
 	llist_destroy(listToTest,false,NULL);
 }

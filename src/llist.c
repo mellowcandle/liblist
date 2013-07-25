@@ -322,7 +322,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 
 	while ( iterator->next != NULL )
 	{
-		if ( iterator->node == pos_node )
+		if ( iterator->next->node == pos_node )
 		{
 			if ( flags & ADD_NODE_BEFORE )
 			{
