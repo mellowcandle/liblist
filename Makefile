@@ -1,5 +1,7 @@
 SHELL = /bin/sh
 CC    = gcc
+
+LLIST_OPTS   = -DLLIST_OPT_SYNCHRONOUS
 CFLAGS       = -g -Wall -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs
@@ -31,7 +33,7 @@ tests: $(TEST_OBJECTS)
 # Need a special rule to compile the lib to allow EXTRA_FLAGS
 $(OBJECTS): $(SOURCES)
 	@echo [Compiling]: $<
-	$(CC) $(CFLAGS) $(EXTRA_FLAGS) -o $@ -c $<
+	$(CC) $(CFLAGS) $(LLIST_OPTS) $(EXTRA_FLAGS) -o $@ -c $<
 	
 clean:
 	rm -rf $(TEST_OBJECTS) $(OBJECTS) *.gcda *.gcov *.gcno *~ $(TARGET) $(TEST_TARGET)
