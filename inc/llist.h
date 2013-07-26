@@ -163,4 +163,10 @@ llist_node llist_peek(llist list);
  */
 llist_node llist_pop(llist list);
 
+/**
+ * @brief return the number of elements in the list
+ * @param list the list to operate on 
+ * @return unsigned int  number of elements in the list
+ */
+unsigned int llist_size(llist list);
 #endif /* LLIST_H_ */

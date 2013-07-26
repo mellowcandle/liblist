@@ -115,6 +115,20 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 
 }
 
+unsigned int llist_size(llist list)
+{
+    unsigned int retval;
+	if ( list == NULL )
+	{
+		return 0;
+	}
+
+	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
+    retval = (( _llist * ) list)->count;
+    pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
+
+    return retval;
+}
 
 int llist_add_node ( llist list, llist_node node, int flags )
 {

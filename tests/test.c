@@ -141,6 +141,7 @@ END_TEST
 START_TEST ( llist_04_delete_nodes )
 {
 	int retval;
+    llist_node temp;
 	llist listToTest = NULL;
 	listToTest = llist_create ( NULL,NULL );
 	
@@ -192,6 +193,21 @@ START_TEST ( llist_04_delete_nodes )
 	retval = llist_delete_node(listToTest, (llist_node) 6, trivial_equal, false, NULL);
 	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);	
 
+	retval = llist_delete_node(listToTest, (llist_node) 2, trivial_equal, false, NULL);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);	
+    
+    // The list should be empty now
+    temp = 	llist_get_tail	(listToTest);
+    ck_assert_ptr_ne(temp,NULL);
+    
+    // Delete last node
+	retval = llist_delete_node(listToTest, (llist_node) 4, trivial_equal, false, NULL);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);	
+    
+    // The list should be empty now
+    temp = 	llist_get_tail	(listToTest);
+    ck_assert_ptr_eq(temp,NULL);
+    
 	llist_destroy(listToTest,false,NULL);
 }
 END_TEST
