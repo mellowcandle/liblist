@@ -49,6 +49,11 @@ typedef void ( * node_func ) ( llist_node node );
 typedef int ( * comperator ) ( llist_node first,llist_node second );
 typedef bool ( * equal ) ( llist_node, llist_node );
 
+#ifndef LLIST_OPT_SYNCHRONOUS
+#define LLIST_INITALIZER {0,NULL,NULL,NULL,NULL}
+#else
+#define LLIST_INITALIZER {0, PTHREAD_MUTEX_INITIALIZER, NULL,NULL,NULL,NULL}
+#endif
 
 /**
  * @brief Create a list
