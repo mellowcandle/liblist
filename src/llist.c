@@ -480,7 +480,7 @@ llist_node llist_pop(llist list)
 		tempnode = tempwrapper->node;
 		( ( _llist * ) list )->head  = ( ( _llist * ) list )->head->next;
 		( ( _llist * ) list )->count--;
-		free(( ( _llist * ) list )->head);
+		free(tempwrapper);
 		
 		if (( ( _llist * ) list )->count == 0) // We've deleted the last node
 		{

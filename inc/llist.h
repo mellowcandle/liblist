@@ -20,6 +20,10 @@
 
 #include <stdbool.h>
 
+#ifdef LLIST_OPT_SYNCHRONOUS
+#include <pthread.h>
+#endif
+
 /** E_LLIST
 * This is the return values most of the llist API return,
 * don't forget to check for success :)
@@ -65,10 +69,12 @@ llist llist_create ( comperator compare_func, equal equal_func );
 
 /**
  * @brief Destroys a list
+ * \warning Call this function only if the list was created with llist_create
+ *          Static initializer created list cannot be destroyed using this function
  * @param[in] list The list to destroy
  * @param[in] bool true if the nodes should be destryed, false if not
  * @param[in] node_func destructor, if the previous param is true,
- *					if NULL is provided standard library c free() will be used
+ *			  if NULL is provided standard library c free() will be used
  */
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
 

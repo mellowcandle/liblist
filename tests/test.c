@@ -323,6 +323,40 @@ START_TEST ( llist_06_insert_nodes )
 END_TEST
 
 
+
+START_TEST ( llist_07_test_stack )
+{
+	int retval;
+	llist listToTest = NULL;
+	llist_node retptr;
+	listToTest = llist_create ( NULL,NULL );
+	
+    // Push 1000 nodes
+    for (unsigned long i = 0; i < 1000; i ++)
+    {
+        retval = llist_push(listToTest, (llist_node) i);
+        ck_assert_int_eq(retval,LLIST_SUCCESS);
+    }
+
+    // Peek at the head
+    retptr = llist_peek(listToTest);
+    ck_assert_int_eq((unsigned long) retptr, 999);
+	for (unsigned long i = 999; i > 0; i--)
+    {
+        retptr = llist_pop(listToTest);
+        ck_assert_int_eq((unsigned long) retptr, i);
+    }
+    
+    printf("Count = %d\n",llist_size(listToTest));
+    retptr = llist_pop(listToTest);
+    ck_assert_ptr_eq(retptr, NULL);
+    
+	llist_destroy(listToTest,false,NULL);
+}
+END_TEST
+
+
+
 Suite * liblist_suite ( void )
 {
 	Suite *s = suite_create ( "Lib linked list tester" );
@@ -335,6 +369,7 @@ Suite * liblist_suite ( void )
 	tcase_add_test ( tc_core, llist_04_delete_nodes);
 	tcase_add_test ( tc_core, llist_05_list_for_each);
 	tcase_add_test ( tc_core, llist_06_insert_nodes);
+    tcase_add_test ( tc_core, llist_07_test_stack);    
 	suite_add_tcase ( s, tc_core );
 
 	return s;

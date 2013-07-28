@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 CC    = gcc
 
-LLIST_OPTS   = -ULLIST_OPT_SYNCHRONOUS
+LLIST_OPTS   = -DLLIST_OPT_SYNCHRONOUS
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs
