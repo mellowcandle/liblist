@@ -35,8 +35,7 @@ void trivial_node_func ( llist_node node )
 
 void trivial_print_node (llist_node node )
 {
-	int i = (int) node;
-	printf("%d ", i);
+	printf("%lu", (unsigned long) node);
 }
 
 void print_llist (llist list)

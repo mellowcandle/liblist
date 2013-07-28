@@ -26,12 +26,10 @@
 
 #define LOG_FUNC_ENTRANCE() printf("%lu: In %s\n", time(NULL), __PRETTY_FUNCTION__);
 
-typedef struct __list_node _list_node;
-
 typedef struct __list_node
 {
 	llist_node node;
-	_list_node * next;
+	struct __list_node * next;
 } _list_node;
 
 typedef struct
