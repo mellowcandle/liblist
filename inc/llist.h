@@ -69,11 +69,11 @@ llist llist_create ( comperator compare_func, equal equal_func );
 
 /**
  * @brief Destroys a list
- * \warning Call this function only if the list was created with llist_create
+ * @warning Call this function only if the list was created with llist_create
  *          Static initializer created list cannot be destroyed using this function
  * @param[in] list The list to destroy
- * @param[in] bool true if the nodes should be destryed, false if not
- * @param[in] node_func destructor, if the previous param is true,
+ * @param[in] destroy_nodes true if the nodes should be destryed, false if not
+ * @param[in] destructor destructor, if the previous param is true,
  *			  if NULL is provided standard library c free() will be used
  */
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
@@ -81,19 +81,19 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
 
 /**
  * @brief Add a node to a list
- * @param[in] llist the list to operator upon
- * @param[in] llist_node the node to add
- * @param[in] int flags
+ * @param[in] list the list to operator upon
+ * @param[in] node the node to add
+ * @param[in] flags flags
  * @return int LLIST_SUCCESS if success
  */
 int	llist_add_node ( llist list, llist_node node, int flags );
 
 /**
  * @brief Insert a node at a specific location
- * @param[in] llist the list to operator upon
- * @param[in] llist_node the node to add
- * @param[in] llist_node a position reference node
- * @param[in] int flags
+ * @param[in] list the list to operator upon
+ * @param[in] new_node the node to add
+ * @param[in] pos_node a position reference node
+ * @param[in] flags flags
  * @return int LLIST_SUCCESS if success
  */
 int llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, int flags );
@@ -101,10 +101,10 @@ int llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, i
 
 /**
  * @brief Delete a node from a list
- * @param[in] llist the list to operator upon
- * @param[in] llist_node the node to delete
- * @param[in] equal an alternative eqauality function
- * @param[in] bool Should we run a destructor
+ * @param[in] list the list to operator upon
+ * @param[in] node the node to delete
+ * @param[in] alternative an alternative eqauality function
+ * @param[in] destroy_node Should we run a destructor
  * @param[in] destructor function, if NULL is provided, free() will be used
  * @return int LLIST_SUCCESS if success
  */
@@ -112,26 +112,26 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 
 /**
  * @brief Finds a node in a list
- * @param[in]  llist the list to operator upon
- * @param[in]  void * the data to find
- * @param[out] llist_node * a pointer for found node.
+ * @param[in]  list the list to operator upon
+ * @param[in]  data the data to find
+ * @param[out] found a pointer for found node.
  * 				this pointer can be used only if llist_find_node returned LLIST_SUCCESS
- * @param[in] equal an alternative eqauality function
+ * @param[in] alternative an alternative eqauality function
  * @return LLIST_SUCCESS if success
  */
 int llist_find_node ( llist list, void * data, llist_node * found, equal alternative );
 
 /**
  * @brief operate on each element of the list
- * @param[in] llist the list to operator upon
- * @param[in] node_func the function to perform
+ * @param[in] list the list to operator upon
+ * @param[in] func the function to perform
  * @return int LLIST_SUCCESS if success
  */
 int llist_for_each ( llist list, node_func func );
 
 /**
  * @brief sort a lists
- * @param[in] list
+ * @param[in] list the list to operator upon
  * @param[in] alternative if unless an alternative comperator function is provided the default will be used
  * @param[in] flags
  * @return int LLIST_SUCCESS if success
@@ -140,14 +140,14 @@ int	llist_sort ( llist list, comperator alternative, int flags );
 
 /**
  * @brief Returns the head node of the list
- * @param list the list to operate on 
+ * @param[in] list the list to operate on 
  * @return the head node, NULL on error
  */
 llist_node	llist_get_head (llist list);
 
 /**
  * @brief Returns the tail node of the list
- * @param list the list to operate on
+ * @param[in] list the list to operate on
  * @return the tail node, NULL on error
  */
 llist_node	llist_get_tail	(llist list);
@@ -155,28 +155,29 @@ llist_node	llist_get_tail	(llist list);
 
 /**
  * @brief push a node to the head of the list
- * @param list the list to operate on 
+ * @param[in] list the list to operate on
+ * @param[in] node the node to push
  * @return int LLIST_SUCCESS if success
  */
 int llist_push (llist list, llist_node node);
 
 /**
  * @brief peek at the head of the list
- * @param list the list to operate on 
+ * @param[in] list the list to operate on 
  * @return llist_node the head node
  */
 llist_node llist_peek(llist list);
 
 /**
  * @brief pop the head of the list
- * @param list the list to operate on 
+ * @param[in] list the list to operate on 
  * @return llist_node the head node
  */
 llist_node llist_pop(llist list);
 
 /**
  * @brief return the number of elements in the list
- * @param list the list to operate on 
+ * @param[in] list the list to operate on 
  * @return unsigned int  number of elements in the list
  */
 unsigned int llist_size(llist list);
