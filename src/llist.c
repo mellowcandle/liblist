@@ -492,3 +492,44 @@ llist_node llist_pop(llist list)
 #endif
 	return tempnode;
 }
+
+
+int llist_concat(llist first, llist second)
+{
+    _list_node * end_node;
+    
+    if ( (first == NULL) || (second == NULL) )
+    {
+        return LLIST_NULL_ARGUMENT;
+    } 
+    
+ // Take the mutex from both the lists
+#ifdef LLIST_OPT_SYNCHRONOUS
+	pthread_mutex_lock ( & ( ( _llist * ) first )->mutex );
+    pthread_mutex_lock ( & ( ( _llist * ) second )->mutex );
+#endif
+
+    end_node = ( ( _llist * ) first )->tail;
+    
+    ( ( _llist * ) first )->count += ( ( _llist * ) second )->count;
+    
+    if (end_node != NULL) // if the first list is not empty
+    {
+        end_node->next = ( ( _llist * ) second )->head;
+    }
+    else
+    { // It's empty
+        ( ( _llist * ) first )->head = ( ( _llist * ) first )->tail = ( ( _llist * ) second )->head;
+    }        
+
+    // Delete the nodes from the second list. (not really deletes them, only loses their reference.
+    (( _llist * ) second )->count = 0;
+    (( _llist * ) second )->head = (( _llist * ) second )->tail = NULL;
+    
+#ifdef LLIST_OPT_SYNCHRONOUS
+	pthread_mutex_unlock ( & ( ( _llist * ) first )->mutex );
+    pthread_mutex_unlock ( & ( ( _llist * ) second )->mutex );
+#endif
+
+    return LLIST_SUCCESS;
+}

@@ -181,4 +181,18 @@ llist_node llist_pop(llist list);
  * @return unsigned int  number of elements in the list
  */
 unsigned int llist_size(llist list);
+
+/**
+ * @brief concatenate the second list to the first list
+ * @param[in] first the list to operate on 
+ * @param[in] second the list to operate on.
+ * @warning The nodes from the second list will be deleted and concatenated to the first list
+ *          Remember to call llist_destroy() on  the second list (if it was created by llist_create())
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_concat(llist first, llist second);
+
+
+
+
 #endif /* LLIST_H_ */
