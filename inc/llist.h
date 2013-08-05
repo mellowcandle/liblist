@@ -192,6 +192,16 @@ unsigned int llist_size(llist list);
  */
 int llist_concat(llist first, llist second);
 
+/**
+ * @brief merge the second list to the first list
+ * @param[in] first the list to operate on 
+ * @param[in] second the list to operate on
+ * @param[in] alternative Alternative comperator function, if NULL is provided, the default comperator of the first list will be used
+ * @warning The nodes from the second list will be deleted and merged to the first list
+ *          Remember to call llist_destroy() on  the second list (if it was created by llist_create())
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_merge(llist first, llist second, comperator alternative);
 
 
 
