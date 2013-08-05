@@ -204,5 +204,22 @@ int llist_concat(llist first, llist second);
 int llist_merge(llist first, llist second, comperator alternative);
 
 
+/**
+ * @brief get the maximum node in a given list
+ * @param[in] list the list to operate upon
+ * @param[in] alternative an alternative comperator function
+ *            if NULL is provided, the default comperator will be used
+ * @return the maximum node
+ */
+llist_node llist_get_max(llist list, comperator alternative);
+
+/**
+ * @brief get the minimum node in a given list
+ * @param[in] list the list to operate upon
+ * @param[in] alternative an alternative comperator function
+ *            if NULL is provided, the default comperator will be used
+ * @return the minimum node
+ */
+llist_node llist_get_min(llist list, comperator alternative);
 
 #endif /* LLIST_H_ */
