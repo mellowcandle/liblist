@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Liblist by mellowcandle</title>
+    <title>Liblist by Ramon Fried</title>
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -40,22 +40,45 @@
       </nav>
       <section>
         <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
+<a name="what-is-llist" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>What is libllist?</h3>
 
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
+<p>libllist is an open source generic implementation of singly linked list in c. The implementation is straight forward and well-tested. The library can be easily built as a shared library or as a static library, so it can easily fit various types of projects</p>
 
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
+<h3><a name="prereq" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>What do I need to compile it?</h3>
+
+<p>libllist is build around a standard gnu make. Here's an example on how to download and use it:</p>
+
+<pre><code>$ git clone https://github.com/mellowcandle/liblist
+$ make
+$ sudo make install
 </code></pre>
 
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
-
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="changes" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>I made some changes, how do I test them ?</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
+<p><b>libllist</b> is open source, I encourage you to extend it and improve it in anyway you like. <b>libllist</b> uses <b>check</b>, a unit testing library for testing.
+<b>libllist</b> also contains test suits which contains different scenarios. you can use them to do regression testing if you change one of the core functionality implementation of the library.</p>
+<p><b> As mentioned above, check library is required for testing, you can get it <a href="http://check.sourceforge.net/">here</a> </b></p> 
+<pre><code>$ make runtest
+Invoking Test:
+--------------
+Running suite(s): Lib linked list tester
+100%: Checks: 7, Failures: 0, Errors: 0
+tests/test.c:51:P:Core:llist_01_create_delete_lists:0: Passed
+tests/test.c:93:P:Core:llist_02_add_nodes:0: Passed
+tests/test.c:133:P:Core:llist_03_add_dynamic_nodes:0: Passed
+tests/test.c:208:P:Core:llist_04_delete_nodes:0: Passed
+tests/test.c:238:P:Core:llist_05_list_for_each:0: Passed
+tests/test.c:316:P:Core:llist_06_insert_nodes:0: Passed
+tests/test.c:352:P:Core:llist_07_test_stack:0: Passed
+Test Coverage:
+--------------
+File 'src/llist.c'
+Lines executed:83.33% of 192
+Creating 'llist.c.gcov'
+</code></pre>
 
+<p> libllist also uses <b>gcov</b> to ensure maximum code coverage in testing, after testing the code, you can inspect the file <b>llist.c.gcov</b> to see the coverage</p>
 <h3>
 <a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
 
@@ -65,6 +88,8 @@ $ git checkout gh-pages
 <a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
 
 <p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+
+
 
 <h3>
 <a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
