@@ -533,3 +533,23 @@ int llist_concat(llist first, llist second)
 
     return LLIST_SUCCESS;
 }
+
+/*
+ * TODO: Implement the below functions
+ */
+
+int llist_reverse(llist list)
+{
+    return LLIST_NOT_IMPLEMENTED;
+}
+
+int llist_merge(llist first, llist second, comperator alternative)
+{
+    return LLIST_NOT_IMPLEMENTED;
+}
+
+int llist_sort ( llist list, comperator alternative, int flags )
+{
+    return LLIST_NOT_IMPLEMENTED;
+}
+

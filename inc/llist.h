@@ -36,6 +36,7 @@ typedef enum
 	LLIST_COMPERATOR_MISSING,		/**< Error: Comperator function is missing*/
 	LLIST_NULL_ARGUMENT,			/**< Error: NULL argument*/
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
+    LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
 	LLIST_ERROR						/**< Error: Generic error*/
 } E_LLIST;
 
@@ -86,7 +87,7 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
  * @param[in] flags flags
  * @return int LLIST_SUCCESS if success
  */
-int	llist_add_node ( llist list, llist_node node, int flags );
+int llist_add_node ( llist list, llist_node node, int flags );
 
 /**
  * @brief Insert a node at a specific location
@@ -136,21 +137,21 @@ int llist_for_each ( llist list, node_func func );
  * @param[in] flags
  * @return int LLIST_SUCCESS if success
  */
-int	llist_sort ( llist list, comperator alternative, int flags );
+int llist_sort ( llist list, comperator alternative, int flags );
 
 /**
  * @brief Returns the head node of the list
  * @param[in] list the list to operate on 
  * @return the head node, NULL on error
  */
-llist_node	llist_get_head (llist list);
+llist_node llist_get_head (llist list);
 
 /**
  * @brief Returns the tail node of the list
  * @param[in] list the list to operate on
  * @return the tail node, NULL on error
  */
-llist_node	llist_get_tail	(llist list);
+llist_node llist_get_tail (llist list);
 
 
 /**
@@ -221,5 +222,12 @@ llist_node llist_get_max(llist list, comperator alternative);
  * @return the minimum node
  */
 llist_node llist_get_min(llist list, comperator alternative);
+
+/**
+ * @brief Reverse a list
+ * @param[in] list the list to operate upon
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_reverse(llist list);
 
 #endif /* LLIST_H_ */
