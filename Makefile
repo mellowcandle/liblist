@@ -1,6 +1,3 @@
-SHELL = /bin/sh
-CC    = gcc
-
 LLIST_OPTS   = -DLLIST_OPT_SYNCHRONOUS
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
@@ -21,7 +18,7 @@ OBJECTS = $(SOURCES:.c=.o)
 PREFIX = $(DESTDIR)/usr/local
 BINDIR = $(PREFIX)/bin
 
-all: $(TARGET) tests
+all: $(TARGET) 
 $(TARGET): $(OBJECTS)
 	mkdir -p $(OBJDIR)
 	$(CC) $(FLAGS) $(LIBFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
@@ -38,10 +35,16 @@ $(OBJECTS): $(SOURCES)
 clean:
 	rm -rf $(TEST_OBJECTS) $(OBJECTS) *.gcda *.gcov *.gcno *~ $(TARGET) $(TEST_TARGET)
 	
-runtests:
+runtests: tests
 	@echo Invoking Test:
 	@echo --------------
 	@./$(TEST_TARGET)
 	@echo Test Coverage:
 	@echo --------------
 	@gcov -osrc llist.c
+
+install:
+	@echo Installing libllist:
+	@echo --------------------
+	cp $(TARGET) /usr/local/lib
+	cp inc/llist.h /usr/local/include
