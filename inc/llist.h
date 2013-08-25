@@ -51,7 +51,22 @@ typedef void * llist_node;
 
 // function prototypes
 typedef void ( * node_func ) ( llist_node node );
+
+/**
+* @brief Compares two nodes in a list
+* @param[in] first llist_node
+* @param[in] second llist_node
+* @return an integer less than, equal to, or greater than zero if first,
+* respectively, to be less than, to match, or be greater than second.
+*/
 typedef int ( * comperator ) ( llist_node first,llist_node second );
+
+/**
+* @brief Check if two nodes are equal
+* @param[in] first llist_node
+* @param[in] second llist_node
+* @return true if the nodes are equal, false otherwise
+*/
 typedef bool ( * equal ) ( llist_node, llist_node );
 
 #ifndef LLIST_OPT_SYNCHRONOUS
