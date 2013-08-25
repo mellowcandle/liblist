@@ -33,7 +33,7 @@ typedef enum
 	LLIST_SUCCESS = 0x00, 			/**< Operating success */
 	LLIST_NODE_NOT_FOUND, 			/**< Error: No matching node found*/
 	LLIST_EQUAL_MISSING,			/**< Error: Equal function is missing*/
-	LLIST_COMPERATOR_MISSING,		/**< Error: Comperator function is missing*/
+	LLIST_COMPERATOR_MISSING,		/**< Error: Comparator function is missing*/
 	LLIST_NULL_ARGUMENT,			/**< Error: NULL argument*/
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
     LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
@@ -88,8 +88,8 @@ llist llist_create ( comperator compare_func, equal equal_func );
  * @warning Call this function only if the list was created with llist_create
  *          Static initializer created list cannot be destroyed using this function
  * @param[in] list The list to destroy
- * @param[in] destroy_nodes true if the nodes should be destryed, false if not
- * @param[in] destructor destructor, if the previous param is true,
+ * @param[in] destroy_nodes true if the nodes should be destroyed, false if not
+ * @param[in] destructor alternative destructor, if the previous param is true,
  *			  if NULL is provided standard library c free() will be used
  */
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
@@ -119,7 +119,7 @@ int llist_insert_node ( llist list,  llist_node new_node, llist_node pos_node, i
  * @brief Delete a node from a list
  * @param[in] list the list to operator upon
  * @param[in] node the node to delete
- * @param[in] alternative an alternative eqauality function
+ * @param[in] alternative an alternative equality function
  * @param[in] destroy_node Should we run a destructor
  * @param[in] destructor function, if NULL is provided, free() will be used
  * @return int LLIST_SUCCESS if success
@@ -132,7 +132,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
  * @param[in]  data the data to find
  * @param[out] found a pointer for found node.
  * 				this pointer can be used only if llist_find_node returned LLIST_SUCCESS
- * @param[in] alternative an alternative eqauality function
+ * @param[in] alternative an alternative equality function
  * @return LLIST_SUCCESS if success
  */
 int llist_find_node ( llist list, void * data, llist_node * found, equal alternative );
@@ -148,7 +148,7 @@ int llist_for_each ( llist list, node_func func );
 /**
  * @brief sort a lists
  * @param[in] list the list to operator upon
- * @param[in] alternative if unless an alternative comperator function is provided the default will be used
+ * @param[in] alternative if unless an alternative comparator function is provided the default will be used
  * @param[in] flags
  * @return int LLIST_SUCCESS if success
  */
@@ -212,7 +212,7 @@ int llist_concat(llist first, llist second);
  * @brief merge the second list to the first list
  * @param[in] first the list to operate on 
  * @param[in] second the list to operate on
- * @param[in] alternative Alternative comperator function, if NULL is provided, the default comperator of the first list will be used
+ * @param[in] alternative Alternative comparator function, if NULL is provided, the default comparator of the first list will be used
  * @warning The nodes from the second list will be deleted and merged to the first list
  *          Remember to call llist_destroy() on  the second list (if it was created by llist_create())
  * @return int LLIST_SUCCESS if success
@@ -223,8 +223,8 @@ int llist_merge(llist first, llist second, comperator alternative);
 /**
  * @brief get the maximum node in a given list
  * @param[in] list the list to operate upon
- * @param[in] alternative an alternative comperator function
- *            if NULL is provided, the default comperator will be used
+ * @param[in] alternative an alternative comparator function
+ *            if NULL is provided, the default comparator will be used
  * @return the maximum node
  */
 llist_node llist_get_max(llist list, comperator alternative);
@@ -232,8 +232,8 @@ llist_node llist_get_max(llist list, comperator alternative);
 /**
  * @brief get the minimum node in a given list
  * @param[in] list the list to operate upon
- * @param[in] alternative an alternative comperator function
- *            if NULL is provided, the default comperator will be used
+ * @param[in] alternative an alternative comparator function
+ *            if NULL is provided, the default comparator will be used
  * @return the minimum node
  */
 llist_node llist_get_min(llist list, comperator alternative);
