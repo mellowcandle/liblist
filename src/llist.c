@@ -534,14 +534,49 @@ int llist_concat(llist first, llist second)
     return LLIST_SUCCESS;
 }
 
+int llist_reverse(llist list)
+{
+	if (list == NULL)
+	{
+		return LLIST_NULL_ARGUMENT;
+	}
+
+#ifdef LLIST_OPT_SYNCHRONOUS
+	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
+#endif
+
+	_list_node * iterator = ( ( _llist * ) list )->head;
+	_list_node * nextnode = NULL;
+	_list_node * temp = NULL;
+
+	/*
+	 * Swap our Head & Tail pointers
+	 */
+	( ( _llist * ) list )->head = ( ( _llist * ) list )->tail;
+	( ( _llist * ) list )->tail = iterator;
+
+	/*
+	 * Swap the internals
+	 */
+	  while (iterator) {
+		  nextnode = iterator->next;
+		  iterator->next = temp;
+		  temp = iterator;
+		  iterator = nextnode;
+	  }
+
+#ifdef LLIST_OPT_SYNCHRONOUS
+	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
+#endif
+
+    return LLIST_SUCCESS;
+}
+
+
 /*
  * TODO: Implement the below functions
  */
 
-int llist_reverse(llist list)
-{
-    return LLIST_NOT_IMPLEMENTED;
-}
 
 int llist_merge(llist first, llist second, comperator alternative)
 {

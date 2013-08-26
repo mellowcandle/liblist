@@ -355,7 +355,31 @@ START_TEST ( llist_07_test_stack )
 }
 END_TEST
 
+START_TEST ( llist_08_list_reverse )
+{
+	int retval;
+	llist listToTest = NULL;
+	listToTest = llist_create ( NULL,NULL );
 
+	// Insert a 5 nodes 1..5
+	retval = llist_add_node(listToTest,(llist_node) 1, ADD_NODE_REAR);
+	retval = llist_add_node(listToTest,(llist_node) 2, ADD_NODE_REAR);
+	retval = llist_add_node(listToTest,(llist_node) 3, ADD_NODE_REAR);
+	retval = llist_add_node(listToTest,(llist_node) 4, ADD_NODE_REAR);
+	retval = llist_add_node(listToTest,(llist_node) 5, ADD_NODE_REAR);
+
+	printf("List before reversing: ");
+	print_llist(listToTest);
+
+	retval = llist_reverse(listToTest);
+	ck_assert_int_eq(retval,LLIST_SUCCESS);
+
+	printf("List After reversing: ");
+	print_llist(listToTest);
+
+	llist_destroy(listToTest,false,NULL);
+}
+END_TEST
 
 Suite * liblist_suite ( void )
 {
@@ -370,6 +394,7 @@ Suite * liblist_suite ( void )
 	tcase_add_test ( tc_core, llist_05_list_for_each);
 	tcase_add_test ( tc_core, llist_06_insert_nodes);
     tcase_add_test ( tc_core, llist_07_test_stack);    
+    tcase_add_test ( tc_core, llist_08_list_reverse);
 	suite_add_tcase ( s, tc_core );
 
 	return s;
