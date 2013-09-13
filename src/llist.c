@@ -20,10 +20,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-#ifdef LLIST_OPT_SYNCHRONOUS
-#include <pthread.h>
-#endif
-
 #define LOG_FUNC_ENTRANCE() printf("%lu: In %s\n", time(NULL), __PRETTY_FUNCTION__);
 
 typedef struct __list_node
@@ -35,9 +31,6 @@ typedef struct __list_node
 typedef struct
 {
 	unsigned int count;
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_t mutex;
-#endif
 	comperator comp_func;
 	equal equal_func;
 	_list_node * head;
@@ -64,10 +57,6 @@ llist llist_create ( comperator compare_func, equal equal_func )
 	new_list->head = NULL;
 	new_list->tail = NULL;
 
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_init ( &new_list->mutex, NULL );
-#endif
-
 	return new_list;
 }
 
@@ -80,9 +69,6 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 	{
 		return;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
 	// Delete the data contained in the nodes
 	iterator = ( ( _llist * ) list )->head;
 
@@ -110,10 +96,7 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 	}
 
 	// OK, now the linked list is caput, let's delete the actual list pointer
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-	pthread_mutex_destroy ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	free ( list );
 
 	return;
@@ -127,13 +110,7 @@ unsigned int llist_size(llist list)
 	{
 		return 0;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
     retval = (( _llist * ) list)->count;
-#ifdef LLIST_OPT_SYNCHRONOUS
-    pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
 
     return retval;
 }
@@ -155,9 +132,6 @@ int llist_add_node ( llist list, llist_node node, int flags )
 	}
 
 	node_wrapper->node = node;
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
 
 	( ( _llist * ) list )->count++;
 
@@ -177,9 +151,7 @@ int llist_add_node ( llist list, llist_node node, int flags )
 		( ( _llist * ) list )->tail->next = node_wrapper;
 		( ( _llist * ) list )->tail = node_wrapper;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	return LLIST_SUCCESS;
 }
 
@@ -205,9 +177,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 	{
 		return LLIST_EQUAL_MISSING;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	iterator = ( ( _llist * ) list )->head;
 
 	// is it the first node ?
@@ -239,9 +209,6 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 			( ( _llist * ) list )->tail = NULL;
 		}
 		assert ( ( ( _llist * ) list )->count >= 0 );
-#ifdef LLIST_OPT_SYNCHRONOUS
-		pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
         
 		return LLIST_SUCCESS;
 	}
@@ -258,9 +225,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 
 				( ( _llist * ) list )->count--;
 				assert ( ( ( _llist * ) list )->count >= 0 );
-#ifdef LLIST_OPT_SYNCHRONOUS                
-				pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 				return LLIST_SUCCESS;
 			}
 
@@ -270,9 +235,6 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 
 	if ( iterator->next == NULL )
 	{
-#ifdef LLIST_OPT_SYNCHRONOUS        
-		pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
 		return LLIST_NODE_NOT_FOUND;
 	}
 
@@ -292,17 +254,13 @@ int llist_for_each ( llist list, node_func func )
 	}
 
 	iterator = ( ( _llist * ) list )->head;
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	while ( iterator != NULL )
 	{
 		func ( iterator->node );
 		iterator = iterator->next;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	return LLIST_SUCCESS;
 }
 
@@ -325,9 +283,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 	}
 
 	node_wrapper->node = new_node;
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	( ( _llist * ) list )->count++;
 
 	iterator = ( ( _llist * ) list )->head;
@@ -346,9 +302,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 			node_wrapper->next = iterator->next;
 			iterator->next = node_wrapper;
 		}
-#ifdef LLIST_OPT_SYNCHRONOUS
-		pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 		return LLIST_SUCCESS;
 	}
 
@@ -368,9 +322,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 				node_wrapper->next = iterator->next;
 				iterator->next = node_wrapper;
 			}
-#ifdef LLIST_OPT_SYNCHRONOUS
-			pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 			return LLIST_SUCCESS;
 		}
 
@@ -403,18 +355,14 @@ int  llist_find_node ( llist list, void * data, llist_node * found, equal altern
 	{
 		return LLIST_EQUAL_MISSING;
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	iterator = ( ( _llist * ) list )->head;
 
 	while ( iterator != NULL )
 	{
 		if ( actual_equal ( iterator->node, data ) )
 		{
-#ifdef LLIST_OPT_SYNCHRONOUS            
-			pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 			*found = iterator->node;
 			return LLIST_SUCCESS;
 		}
@@ -423,9 +371,7 @@ int  llist_find_node ( llist list, void * data, llist_node * found, equal altern
 	}
 
 	// Didn't find the node
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	return LLIST_NODE_NOT_FOUND;
 
 }
@@ -471,9 +417,7 @@ llist_node llist_pop(llist list)
 {
 	llist_node tempnode = NULL;
 	_list_node * tempwrapper;
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	if  ( ( ( _llist * ) list )->count) // There exists at least one node
 	{ 	
 		tempwrapper = ( ( _llist * ) list )->head;
@@ -487,9 +431,7 @@ llist_node llist_pop(llist list)
 			( ( _llist * ) list )->tail = NULL;
 		}
 	}
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
+
 	return tempnode;
 }
 
@@ -503,11 +445,6 @@ int llist_concat(llist first, llist second)
         return LLIST_NULL_ARGUMENT;
     } 
     
- // Take the mutex from both the lists
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) first )->mutex );
-    pthread_mutex_lock ( & ( ( _llist * ) second )->mutex );
-#endif
 
     end_node = ( ( _llist * ) first )->tail;
     
@@ -526,11 +463,6 @@ int llist_concat(llist first, llist second)
     (( _llist * ) second )->count = 0;
     (( _llist * ) second )->head = (( _llist * ) second )->tail = NULL;
     
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) first )->mutex );
-    pthread_mutex_unlock ( & ( ( _llist * ) second )->mutex );
-#endif
-
     return LLIST_SUCCESS;
 }
 
@@ -540,10 +472,6 @@ int llist_reverse(llist list)
 	{
 		return LLIST_NULL_ARGUMENT;
 	}
-
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_lock ( & ( ( _llist * ) list )->mutex );
-#endif
 
 	_list_node * iterator = ( ( _llist * ) list )->head;
 	_list_node * nextnode = NULL;
@@ -564,10 +492,6 @@ int llist_reverse(llist list)
 		  temp = iterator;
 		  iterator = nextnode;
 	  }
-
-#ifdef LLIST_OPT_SYNCHRONOUS
-	pthread_mutex_unlock ( & ( ( _llist * ) list )->mutex );
-#endif
 
     return LLIST_SUCCESS;
 }

@@ -1,4 +1,4 @@
-LLIST_OPTS   = -DLLIST_OPT_SYNCHRONOUS
+LLIST_OPTS   = 
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs

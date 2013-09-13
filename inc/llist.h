@@ -20,9 +20,6 @@
 
 #include <stdbool.h>
 
-#ifdef LLIST_OPT_SYNCHRONOUS
-#include <pthread.h>
-#endif
 
 /** E_LLIST
 * This is the return values most of the llist API return,
@@ -69,11 +66,7 @@ typedef int ( * comperator ) ( llist_node first,llist_node second );
 */
 typedef bool ( * equal ) ( llist_node, llist_node );
 
-#ifndef LLIST_OPT_SYNCHRONOUS
 #define LLIST_INITALIZER {0,NULL,NULL,NULL,NULL}
-#else
-#define LLIST_INITALIZER {0, PTHREAD_MUTEX_INITIALIZER, NULL,NULL,NULL,NULL}
-#endif
 
 /**
  * @brief Create a list
