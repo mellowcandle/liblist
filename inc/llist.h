@@ -43,6 +43,9 @@ typedef enum
 #define ADD_NODE_BEFORE    ( 1<<0 )
 #define ADD_NODE_AFTER      ~ADD_NODE_BEFORE
 
+#define SORT_LIST_ASCENDING ( 1<<0 )
+#define SORT_LIST_DESCENDING ~SORT_LIST_ASCENDING
+
 typedef void * llist;
 typedef void * llist_node;
 

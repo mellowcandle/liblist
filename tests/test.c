@@ -401,10 +401,16 @@ START_TEST ( llist_09_list_sort )
     printf ( "List before sorting: " );
     print_llist ( listToTest );
 
-    retval = llist_sort ( listToTest, NULL, 0 );
+    retval = llist_sort ( listToTest, NULL, SORT_LIST_ASCENDING );
     ck_assert_int_eq ( retval, LLIST_SUCCESS );
 
-    printf ( "List After sorting: " );
+    printf ( "List After sorting ascending: " );
+    print_llist ( listToTest );
+
+    retval = llist_sort ( listToTest, NULL, SORT_LIST_DESCENDING );
+    ck_assert_int_eq ( retval, LLIST_SUCCESS );
+
+    printf ( "List After sorting descending: " );
     print_llist ( listToTest );
 
     llist_destroy ( listToTest, false, NULL );

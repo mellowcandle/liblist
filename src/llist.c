@@ -38,7 +38,7 @@ typedef struct
 } _llist;
 
 /* Helper functions - not to be exported */
-static _list_node *listsort ( _list_node *list, comperator cmp );
+static _list_node *listsort ( _list_node *list, comperator cmp, int flags );
 
 llist llist_create ( comperator compare_func, equal equal_func )
 {
@@ -532,24 +532,23 @@ int llist_sort ( llist list, comperator alternative, int flags )
     {
         return LLIST_COMPERATOR_MISSING;
     }
-    thelist->head = listsort ( thelist->head, cmp );
+    thelist->head = listsort ( thelist->head, cmp, flags);
     /*
      * TODO: update list tail.
      */
     return LLIST_SUCCESS;
 }
 
-static _list_node *listsort ( _list_node *list, comperator cmp )
+static _list_node *listsort ( _list_node *list, comperator cmp , int flags)
 {
-    _list_node *p, *q, *e, *tail, *oldhead;
+    _list_node *p, *q, *e, *tail;
     int insize, nmerges, psize, qsize, i;
-
+    int direction = ( flags & SORT_LIST_ASCENDING ) ? 1 : -1;
     insize = 1;
 
     while ( 1 )
     {
         p = list;
-        oldhead = list; /* only used for circular linkage */
         list = NULL;
         tail = NULL;
 
@@ -595,7 +594,7 @@ static _list_node *listsort ( _list_node *list, comperator cmp )
                         psize--;
                     }
                     else
-                        if ( cmp ( p->node, q->node ) <= 0 )
+                        if ( ( direction * cmp ( p->node, q->node ) ) <= 0 )
                         {
                             /* First element of p is lower (or same);
                              * e must come from p. */
