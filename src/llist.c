@@ -499,15 +499,6 @@ int llist_reverse ( llist list )
     return LLIST_SUCCESS;
 }
 
-/*
- * TODO: Implement the below functions
- */
-
-int llist_merge ( llist first, llist second, comperator alternative )
-{
-    return LLIST_NOT_IMPLEMENTED;
-}
-
 int llist_sort ( llist list, comperator alternative, int flags )
 {
 
@@ -638,5 +629,28 @@ static _list_node *listsort ( _list_node *list, comperator cmp , int flags)
         insize *= 2;
     }
     return list;
+}
+
+/*
+ * TODO: Implement the below functions
+ */
+
+int llist_merge ( llist first, llist second, comperator alternative )
+{
+	assert (1 == 0); // Fail, function not implemented yet.
+    return LLIST_NOT_IMPLEMENTED;
+}
+
+
+llist_node llist_get_max(llist list, comperator alternative)
+{
+	assert (1 == 0); // Fail, function not implemented yet.
+	return NULL;
+}
+
+llist_node llist_get_min(llist list, comperator alternative)
+{
+	assert (1 == 0); // Fail, function not implemented yet.
+	return NULL;
 }
 
