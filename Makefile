@@ -2,7 +2,7 @@ LLIST_OPTS   =
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs
-LDFLAGS	     = -shared -pthread -lcheck
+LDFLAGS	     = -shared -lcheck
 DEBUGFLAGS   = -O0 -D _DEBUG
 RELEASEFLAGS = -O2 -D NDEBUG -combine -fwhole-program
 TEST_LDFLAGS = -lcheck -lllist -Llib -Wl,-rpath $(OBJDIR)
