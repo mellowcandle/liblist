@@ -241,4 +241,11 @@ llist_node llist_get_min(llist list, comperator alternative);
  */
 int llist_reverse(llist list);
 
+/**
+ * @brief check if list is empty
+ * @param[in] list the list to operate upon
+ * @return bool True if list is empty
+ */
+bool llist_is_empty(llist list);
+
 #endif /* LLIST_H_ */

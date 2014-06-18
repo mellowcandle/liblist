@@ -638,7 +638,7 @@ static _list_node *listsort ( _list_node *list, comperator cmp , int flags)
 int llist_merge ( llist first, llist second, comperator alternative )
 {
 	assert (1 == 0); // Fail, function not implemented yet.
-    return LLIST_NOT_IMPLEMENTED;
+	return LLIST_NOT_IMPLEMENTED;
 }
 
 
@@ -652,5 +652,10 @@ llist_node llist_get_min(llist list, comperator alternative)
 {
 	assert (1 == 0); // Fail, function not implemented yet.
 	return NULL;
+}
+
+bool llist_is_empty(llist list)
+{
+    return ( ! llist_size ( list ) ) ;
 }
 
