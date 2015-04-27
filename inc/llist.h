@@ -50,7 +50,7 @@ typedef void * llist;
 typedef void * llist_node;
 
 // function prototypes
-typedef void ( * node_func ) ( llist_node node );
+typedef void ( * node_func ) ( llist_node node, void* any );
 
 /**
 * @brief Compares two nodes in a list

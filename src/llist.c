@@ -82,7 +82,7 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 
             if ( destructor )
             {
-                destructor ( iterator->node );
+                destructor ( iterator->node, NULL);
             }
             else
             {
@@ -191,7 +191,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative,
         {
             if ( destructor )
             {
-                destructor ( iterator->node );
+                destructor ( iterator->node, NULL );
             }
             else
             {
@@ -260,7 +260,7 @@ int llist_for_each ( llist list, node_func func )
 
     while ( iterator != NULL )
     {
-        func ( iterator->node );
+        func ( iterator->node, NULL );
         iterator = iterator->next;
     }
 
