@@ -139,7 +139,7 @@ int llist_find_node ( llist list, void * data, llist_node * found, equal alterna
  * @param[in] func the function to perform
  * @return int LLIST_SUCCESS if success
  */
-int llist_for_each ( llist list, node_func func );
+int llist_for_each ( llist list, node_func func, void* arg );
 
 /**
  * @brief sort a lists

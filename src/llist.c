@@ -247,7 +247,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative,
     return LLIST_ERROR;
 }
 
-int llist_for_each ( llist list, node_func func )
+int llist_for_each ( llist list, node_func func, void* arg)
 {
     _list_node *iterator;
 
@@ -260,7 +260,7 @@ int llist_for_each ( llist list, node_func func )
 
     while ( iterator != NULL )
     {
-        func ( iterator->node, NULL );
+        func ( iterator->node, arg );
         iterator = iterator->next;
     }
 
