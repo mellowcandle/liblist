@@ -52,6 +52,9 @@ typedef void * llist_node;
 // function prototypes
 typedef void ( * node_func ) ( llist_node node );
 
+// function prototypes with user arguments
+typedef void ( * node_func_arg ) ( llist_node node, void * arg );
+
 /**
 * @brief Compares two nodes in a list
 * @param[in] first llist_node
@@ -140,6 +143,15 @@ int llist_find_node ( llist list, void * data, llist_node * found, equal alterna
  * @return int LLIST_SUCCESS if success
  */
 int llist_for_each ( llist list, node_func func );
+
+/**
+ * @brief operate on each element of the list
+ * @param[in] list the list to operator upon
+ * @param[in] func the function to perform
+ * @param[in] arg passed to func
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_for_each_arg ( llist list, node_func_arg func, void * arg);
 
 /**
  * @brief sort a lists
