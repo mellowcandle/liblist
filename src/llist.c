@@ -267,6 +267,26 @@ int llist_for_each ( llist list, node_func func )
     return LLIST_SUCCESS;
 }
 
+int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
+{
+    _list_node *iterator;
+
+    if ( ( list == NULL ) || ( func == NULL ) )
+    {
+        return LLIST_NULL_ARGUMENT;
+    }
+
+    iterator = ( ( _llist * ) list )->head;
+
+    while ( iterator != NULL )
+    {
+        func ( iterator->node, arg);
+        iterator = iterator->next;
+    }
+
+    return LLIST_SUCCESS;
+}
+
 int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
                         int flags )
 {
