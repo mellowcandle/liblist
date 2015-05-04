@@ -28,7 +28,7 @@ bool trivial_equal ( llist_node node1, llist_node node2 )
 }
 int trivial_comperator ( llist_node first, llist_node second )
 {
-    return ( ( int ) first ) - ( ( int ) second );
+    return ( ( int64_t ) first ) - ( ( int64_t ) second );
 }
 
 void trivial_node_func ( llist_node node )
