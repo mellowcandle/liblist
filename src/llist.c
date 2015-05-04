@@ -280,7 +280,7 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
 
     while ( iterator != NULL )
     {
-        func ( iterator->node, arg);
+        func ( iterator->node, arg );
         iterator = iterator->next;
     }
 
