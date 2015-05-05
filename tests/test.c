@@ -114,7 +114,7 @@ START_TEST ( llist_02_add_nodes_mt )
     int retval;
     llist listToTest = NULL;
     llist_node retptr;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_FRONT );
@@ -204,7 +204,7 @@ START_TEST ( llist_03_add_dynamic_nodes_mt )
 
     llist listToTest = NULL;
     llist_node retptr;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) data[0], ADD_NODE_FRONT );
@@ -312,7 +312,7 @@ START_TEST ( llist_04_delete_nodes_mt )
     int retval;
     llist_node temp;
     llist listToTest = NULL;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_FRONT );
@@ -415,7 +415,7 @@ START_TEST ( llist_05_list_for_each_mt )
 {
     int retval;
     llist listToTest = NULL;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_REAR );
@@ -527,7 +527,7 @@ START_TEST ( llist_06_insert_nodes_mt )
     int retval;
     llist listToTest = NULL;
     llist_node retptr;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_FRONT );
@@ -639,7 +639,7 @@ START_TEST ( llist_07_test_stack_mt )
     int retval;
     llist listToTest = NULL;
     llist_node retptr;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Push 1000 nodes
     for ( unsigned long i = 0; i < 1000; i ++ )
@@ -695,7 +695,7 @@ START_TEST ( llist_08_list_reverse_mt )
 {
     int retval;
     llist listToTest = NULL;
-    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_REAR );
@@ -753,7 +753,7 @@ START_TEST ( llist_09_list_sort_mt )
 {
     int retval;
     llist listToTest = NULL;
-    listToTest = llist_create ( trivial_comperator , NULL, MT_SUPPORT_FALSE );
+    listToTest = llist_create ( trivial_comperator , NULL, MT_SUPPORT_TRUE );
 
     // Insert a 5 nodes 1..5
     retval = llist_add_node ( listToTest, ( llist_node ) 3, ADD_NODE_REAR );
