@@ -19,8 +19,39 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <pthread.h>
 
 #define LOG_FUNC_ENTRANCE() printf("%lu: In %s\n", time(NULL), __PRETTY_FUNCTION__);
+
+#define WRITE_LOCK(list, err_code) \
+    if ( TRUE == (( _llist * )list)->ismt ) \
+    { \
+        int rc = pthread_rwlock_wrlock(&( ( _llist * ) list )->llist_lock); \
+        if (rc != 0)\
+        {\
+            return err_code;\
+        }\
+    }
+
+#define READ_LOCK(list, err_code) \
+    if ( TRUE == (( _llist * )list)->ismt ) \
+    { \
+        int rc = pthread_rwlock_rdlock(&( ( _llist * ) list )->llist_lock); \
+        if (rc != 0)\
+        {\
+            return err_code;\
+        }\
+    }
+
+#define UNLOCK(list, err_code) \
+    if ( TRUE == (( _llist * )list)->ismt ) \
+    { \
+        int rc = pthread_rwlock_unlock(&( ( _llist * ) list )->llist_lock); \
+        if (rc != 0)\
+        {\
+            return err_code;\
+        }\
+    }
 
 typedef struct __list_node
 {
@@ -35,14 +66,21 @@ typedef struct
     equal equal_func;
     _list_node *head;
     _list_node *tail;
+
+    //multi-threading support
+    unsigned char ismt;
+    pthread_rwlockattr_t llist_lock_attr;
+    pthread_rwlock_t llist_lock;
+
 } _llist;
 
 /* Helper functions - not to be exported */
 static _list_node *listsort ( _list_node *list, comperator cmp, int flags );
 
-llist llist_create ( comperator compare_func, equal equal_func )
+llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
 {
     _llist *new_list;
+    int rc = 0;
     new_list = malloc ( sizeof ( _llist ) );
 
     if ( new_list == NULL )
@@ -58,6 +96,25 @@ llist llist_create ( comperator compare_func, equal equal_func )
     new_list->count = 0;
     new_list->head = NULL;
     new_list->tail = NULL;
+
+    new_list->ismt = FALSE;
+    if ( flags || MT_SUPPORT_TRUE)
+    {
+        new_list->ismt = TRUE;
+        rc = pthread_rwlockattr_setpshared( &new_list->llist_lock_attr,  PTHREAD_PROCESS_PRIVATE );
+        if ( 0 != rc)
+        {
+            free(new_list);
+            return NULL;
+        }
+        rc = pthread_rwlock_init( &new_list->llist_lock, &new_list->llist_lock_attr );
+        if ( 0 != rc)
+        {
+            pthread_rwlockattr_destroy(&new_list->llist_lock_attr);
+            free(new_list);
+            return NULL;
+        }
+    }
 
     return new_list;
 }
@@ -97,22 +154,34 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
         iterator = next;
     }
 
-    // OK, now the linked list is caput, let's delete the actual list pointer
 
+
+    //release any thread related resource, just try to destroy no use checking return code
+    pthread_rwlockattr_destroy(&( ( _llist * ) list )->llist_lock_attr);
+    pthread_rwlock_destroy( &( ( _llist * ) list )->llist_lock);
+
+    //release the list
     free ( list );
 
     return;
 
 }
 
-unsigned int llist_size ( llist list )
+int llist_size ( llist list )
 {
     unsigned int retval;
     if ( list == NULL )
     {
         return 0;
     }
-    retval = ( ( _llist * ) list )->count;
+    READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
+
+    {
+        //read only critical section
+        retval = ( ( _llist * ) list )->count;
+    }
+
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     return retval;
 }
@@ -126,24 +195,27 @@ int llist_add_node ( llist list, llist_node node, int flags )
         return LLIST_NULL_ARGUMENT;
     }
 
-    node_wrapper = malloc ( sizeof ( _list_node ) );
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    if ( node_wrapper == NULL )
-    {
-        return LLIST_ERROR;
-    }
+    {   //write critical section
+        node_wrapper = malloc ( sizeof ( _list_node ) );
 
-    node_wrapper->node = node;
+        if ( node_wrapper == NULL )
+        {
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+                       return LLIST_ERROR;
+        }
 
-    ( ( _llist * ) list )->count++;
+        node_wrapper->node = node;
 
-    if ( ( ( _llist * ) list )->head == NULL ) // Adding the first node, update head and tail to point to that node
-    {
-        node_wrapper->next = NULL;
-        ( ( _llist * ) list )->head = ( ( _llist * ) list )->tail = node_wrapper;
-    }
-    else
-        if ( flags & ADD_NODE_FRONT )
+        ( ( _llist * ) list )->count++;
+
+        if ( ( ( _llist * ) list )->head == NULL ) // Adding the first node, update head and tail to point to that node
+        {
+            node_wrapper->next = NULL;
+            ( ( _llist * ) list )->head = ( ( _llist * ) list )->tail = node_wrapper;
+        }
+        else if ( flags & ADD_NODE_FRONT )
         {
             node_wrapper->next = ( ( _llist * ) list )->head;
             ( ( _llist * ) list )->head = node_wrapper;
@@ -154,6 +226,9 @@ int llist_add_node ( llist list, llist_node node, int flags )
             ( ( _llist * ) list )->tail->next = node_wrapper;
             ( ( _llist * ) list )->tail = node_wrapper;
         }
+    }
+
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     return LLIST_SUCCESS;
 }
@@ -182,68 +257,76 @@ int llist_delete_node ( llist list, llist_node node, equal alternative,
         return LLIST_EQUAL_MISSING;
     }
 
-    iterator = ( ( _llist * ) list )->head;
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    // is it the first node ?
-    if ( actual_equal ( iterator->node, node ) )
     {
-        if ( destroy_node )
+        iterator = ( ( _llist * ) list )->head;
+
+        // is it the first node ?
+        if ( actual_equal ( iterator->node, node ) )
         {
-            if ( destructor )
+            if ( destroy_node )
             {
-                destructor ( iterator->node );
-            }
-            else
-            {
-                free ( iterator->node );
-            }
+                if ( destructor )
+                {
+                    destructor ( iterator->node);
+                }
+                else
+                {
+                    free ( iterator->node );
+                }
 
-        }
-
-        ( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
-        free ( iterator );
-        ( ( _llist * ) list )->count--;
-
-        if ( ( ( _llist * ) list )->count == 0 )
-        {
-            /*
-             *	if we deleted the last node, we need to reset the tail also
-             *	There's no need to check it somewhere else, because the last node must be the head (and tail)
-             */
-            ( ( _llist * ) list )->tail = NULL;
-        }
-        assert ( ( ( _llist * ) list )->count >= 0 );
-
-        return LLIST_SUCCESS;
-    }
-    else
-    {
-        while ( iterator->next != NULL )
-        {
-            if ( actual_equal ( iterator->next->node, node ) )
-            {
-                // found it
-                temp = iterator->next;
-                iterator->next = temp->next;
-                free ( temp );
-
-                ( ( _llist * ) list )->count--;
-                assert ( ( ( _llist * ) list )->count >= 0 );
-
-                return LLIST_SUCCESS;
             }
 
-            iterator = iterator->next;
+            ( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
+            free ( iterator );
+            ( ( _llist * ) list )->count--;
+
+            if ( ( ( _llist * ) list )->count == 0 )
+            {
+                /*
+                 *  if we deleted the last node, we need to reset the tail also
+                 *  There's no need to check it somewhere else, because the last node must be the head (and tail)
+                 */
+                ( ( _llist * ) list )->tail = NULL;
+            }
+            //assert ( ( ( _llist * ) list )->count >= 0 );
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE );
+            return LLIST_SUCCESS;
         }
+        else
+        {
+            while ( iterator->next != NULL )
+            {
+                if ( actual_equal ( iterator->next->node, node ) )
+                {
+                    // found it
+                    temp = iterator->next;
+                    iterator->next = temp->next;
+                    free ( temp );
+
+                    ( ( _llist * ) list )->count--;
+                    //assert ( ( ( _llist * ) list )->count >= 0 );
+
+                    UNLOCK( list, LLIST_MULTITHREAD_ISSUE );
+                    return LLIST_SUCCESS;
+                }
+
+                iterator = iterator->next;
+            }
+        }
+
+        if ( iterator->next == NULL )
+        {
+            UNLOCK( list,LLIST_MULTITHREAD_ISSUE );
+            return LLIST_NODE_NOT_FOUND;
+        }
+
     }
 
-    if ( iterator->next == NULL )
-    {
-        return LLIST_NODE_NOT_FOUND;
-    }
-
-    assert ( 1 == 2 );
+    //assert ( 1 == 2 );
     // this assert always failed. we assume that the function never gets here...
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE );
     return LLIST_ERROR;
 }
 
@@ -276,13 +359,20 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
         return LLIST_NULL_ARGUMENT;
     }
 
-    iterator = ( ( _llist * ) list )->head;
+    READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    while ( iterator != NULL )
     {
-        func ( iterator->node, arg );
-        iterator = iterator->next;
+
+        iterator = ( ( _llist * ) list )->head;
+
+        while ( iterator != NULL )
+        {
+            func ( iterator->node , arg);
+            iterator = iterator->next;
+        }
     }
+
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     return LLIST_SUCCESS;
 }
@@ -298,59 +388,66 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
         return LLIST_NULL_ARGUMENT;
     }
 
-    node_wrapper = malloc ( sizeof ( _list_node ) );
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    if ( node_wrapper == NULL )
     {
-        return LLIST_MALLOC_ERROR;
-    }
+        node_wrapper = malloc ( sizeof ( _list_node ) );
 
-    node_wrapper->node = new_node;
-
-    ( ( _llist * ) list )->count++;
-
-    iterator = ( ( _llist * ) list )->head;
-
-    if ( iterator->node == pos_node )
-    {
-        // it's the first node
-
-        if ( flags & ADD_NODE_BEFORE )
+        if ( node_wrapper == NULL )
         {
-            node_wrapper->next = iterator;
-            ( ( _llist * ) list )->head = node_wrapper;
-        }
-        else
-        {
-            node_wrapper->next = iterator->next;
-            iterator->next = node_wrapper;
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+                        return LLIST_MALLOC_ERROR;
         }
 
-        return LLIST_SUCCESS;
-    }
+        node_wrapper->node = new_node;
 
-    while ( iterator->next != NULL )
-    {
-        if ( iterator->next->node == pos_node )
+        ( ( _llist * ) list )->count++;
+
+        iterator = ( ( _llist * ) list )->head;
+
+        if ( iterator->node == pos_node )
         {
+            // it's the first node
+
             if ( flags & ADD_NODE_BEFORE )
             {
-                node_wrapper->next = iterator->next;
-                iterator->next = node_wrapper;
+                node_wrapper->next = iterator;
+                ( ( _llist * ) list )->head = node_wrapper;
             }
             else
             {
-                iterator = iterator->next;
-                // now we stand on the pos node
                 node_wrapper->next = iterator->next;
                 iterator->next = node_wrapper;
             }
-
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
             return LLIST_SUCCESS;
         }
 
-        iterator = iterator->next;
+        while ( iterator->next != NULL )
+        {
+            if ( iterator->next->node == pos_node )
+            {
+                if ( flags & ADD_NODE_BEFORE )
+                {
+                    node_wrapper->next = iterator->next;
+                    iterator->next = node_wrapper;
+                }
+                else
+                {
+                    iterator = iterator->next;
+                    // now we stand on the pos node
+                    node_wrapper->next = iterator->next;
+                    iterator->next = node_wrapper;
+                }
+                UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+                return LLIST_SUCCESS;
+            }
+
+            iterator = iterator->next;
+        }
+
     }
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     assert ( 1 == 2 );
     // this assert will always fail. we assume that the function never gets here...
@@ -380,48 +477,68 @@ int llist_find_node ( llist list, void *data, llist_node *found,
         return LLIST_EQUAL_MISSING;
     }
 
-    iterator = ( ( _llist * ) list )->head;
+    READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    while ( iterator != NULL )
     {
-        if ( actual_equal ( iterator->node, data ) )
+        iterator = ( ( _llist * ) list )->head;
+
+        while ( iterator != NULL )
         {
+            if ( actual_equal ( iterator->node, data ) )
+            {
 
-            *found = iterator->node;
-            return LLIST_SUCCESS;
+                *found = iterator->node;
+                UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+                return LLIST_SUCCESS;
+            }
+
+            iterator = iterator->next;
         }
-
-        iterator = iterator->next;
     }
 
-    // Didn't find the node
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
+    // Didn't find the node
     return LLIST_NODE_NOT_FOUND;
 
 }
 
 llist_node llist_get_head ( llist list )
 {
-    if ( list != NULL )
-    {
-        if ( ( ( _llist * ) list )->head ) // there's at least one node
+    READ_LOCK( list, NULL )
+
+                {
+        if ( list != NULL )
         {
-            return ( ( _llist * ) list )->head->node;
+            if ( ( ( _llist * ) list )->head ) // there's at least one node
+            {
+                UNLOCK( list, NULL )
+                            return ( ( _llist * ) list )->head->node;
+            }
         }
-    }
+                }
+
+    UNLOCK( list, NULL )
 
     return NULL;
 }
 
 llist_node llist_get_tail ( llist list )
 {
-    if ( list != NULL )
-    {
-        if ( ( ( _llist * ) list )->tail ) // there's at least one node
+    READ_LOCK( list, NULL )
+
+                {
+        if ( list != NULL )
         {
-            return ( ( _llist * ) list )->tail->node;
+            if ( ( ( _llist * ) list )->tail ) // there's at least one node
+            {
+                UNLOCK(list, NULL)
+                            return ( ( _llist * ) list )->tail->node;
+            }
         }
-    }
+                }
+
+    UNLOCK(list, NULL)
 
     return NULL;
 }
@@ -441,19 +558,25 @@ llist_node llist_pop ( llist list )
     llist_node tempnode = NULL;
     _list_node *tempwrapper;
 
-    if ( ( ( _llist * ) list )->count ) // There exists at least one node
-    {
-        tempwrapper = ( ( _llist * ) list )->head;
-        tempnode = tempwrapper->node;
-        ( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
-        ( ( _llist * ) list )->count--;
-        free ( tempwrapper );
+    WRITE_LOCK( list, NULL )
 
-        if ( ( ( _llist * ) list )->count == 0 ) // We've deleted the last node
+    {
+        if ( ( ( _llist * ) list )->count ) // There exists at least one node
         {
-            ( ( _llist * ) list )->tail = NULL;
+            tempwrapper = ( ( _llist * ) list )->head;
+            tempnode = tempwrapper->node;
+            ( ( _llist * ) list )->head = ( ( _llist * ) list )->head->next;
+            ( ( _llist * ) list )->count--;
+            free ( tempwrapper );
+
+            if ( ( ( _llist * ) list )->count == 0 ) // We've deleted the last node
+            {
+                ( ( _llist * ) list )->tail = NULL;
+            }
         }
     }
+
+    UNLOCK(list, NULL)
 
     return tempnode;
 }
@@ -467,23 +590,32 @@ int llist_concat ( llist first, llist second )
         return LLIST_NULL_ARGUMENT;
     }
 
-    end_node = ( ( _llist * ) first )->tail;
+    WRITE_LOCK( first, LLIST_MULTITHREAD_ISSUE )
+    WRITE_LOCK( second, LLIST_MULTITHREAD_ISSUE )
 
-    ( ( _llist * ) first )->count += ( ( _llist * ) second )->count;
-
-    if ( end_node != NULL ) // if the first list is not empty
     {
-        end_node->next = ( ( _llist * ) second )->head;
-    }
-    else     // It's empty
-    {
-        ( ( _llist * ) first )->head = ( ( _llist * ) first )->tail =
-                                           ( ( _llist * ) second )->head;
+
+        end_node = ( ( _llist * ) first )->tail;
+
+        ( ( _llist * ) first )->count += ( ( _llist * ) second )->count;
+
+        if ( end_node != NULL ) // if the first list is not empty
+        {
+            end_node->next = ( ( _llist * ) second )->head;
+        }
+        else     // It's empty
+        {
+            ( ( _llist * ) first )->head = ( ( _llist * ) first )->tail =
+                    ( ( _llist * ) second )->head;
+        }
+
+        // Delete the nodes from the second list. (not really deletes them, only loses their reference.
+        ( ( _llist * ) second )->count = 0;
+        ( ( _llist * ) second )->head = ( ( _llist * ) second )->tail = NULL;
     }
 
-    // Delete the nodes from the second list. (not really deletes them, only loses their reference.
-    ( ( _llist * ) second )->count = 0;
-    ( ( _llist * ) second )->head = ( ( _llist * ) second )->tail = NULL;
+    UNLOCK( first, LLIST_MULTITHREAD_ISSUE )
+    UNLOCK( second, LLIST_MULTITHREAD_ISSUE )
 
     return LLIST_SUCCESS;
 }
@@ -495,26 +627,35 @@ int llist_reverse ( llist list )
         return LLIST_NULL_ARGUMENT;
     }
 
-    _list_node *iterator = ( ( _llist * ) list )->head;
-    _list_node *nextnode = NULL;
-    _list_node *temp = NULL;
 
-    /*
-     * Swap our Head & Tail pointers
-     */
-    ( ( _llist * ) list )->head = ( ( _llist * ) list )->tail;
-    ( ( _llist * ) list )->tail = iterator;
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
-    /*
-     * Swap the internals
-     */
-    while ( iterator )
     {
-        nextnode = iterator->next;
-        iterator->next = temp;
-        temp = iterator;
-        iterator = nextnode;
+
+        _list_node *iterator = ( ( _llist * ) list )->head;
+        _list_node *nextnode = NULL;
+        _list_node *temp = NULL;
+
+        /*
+         * Swap our Head & Tail pointers
+         */
+        ( ( _llist * ) list )->head = ( ( _llist * ) list )->tail;
+        ( ( _llist * ) list )->tail = iterator;
+
+        /*
+         * Swap the internals
+         */
+        while ( iterator )
+        {
+            nextnode = iterator->next;
+            iterator->next = temp;
+            temp = iterator;
+            iterator = nextnode;
+        }
+
     }
+
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     return LLIST_SUCCESS;
 }
@@ -543,7 +684,9 @@ int llist_sort ( llist list, comperator alternative, int flags )
     {
         return LLIST_COMPERATOR_MISSING;
     }
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
     thelist->head = listsort ( thelist->head, cmp, flags);
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
     /*
      * TODO: update list tail.
      */
