@@ -17,6 +17,8 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <check.h>
 #include "../inc/llist.h"
 
@@ -235,7 +237,7 @@ END_TEST
 START_TEST ( llist_04_delete_nodes )
 {
     int retval;
-    llist_node temp;
+    //llist_node temp;
     llist listToTest = NULL;
     listToTest = llist_create ( NULL, NULL, MT_SUPPORT_FALSE );
 
@@ -290,17 +292,17 @@ START_TEST ( llist_04_delete_nodes )
     retval = llist_delete_node ( listToTest, ( llist_node ) 2, trivial_equal, false, NULL );
     ck_assert_int_eq ( retval, LLIST_SUCCESS );
 
-    // The list should be empty now
-    temp = 	llist_get_tail	( listToTest );
-    ck_assert_ptr_ne ( temp, NULL );
+    // The list should not  be empty now
+    ck_assert_int_eq(llist_is_empty ( listToTest ), FALSE );
+
+    ck_assert_int_eq(llist_is_empty ( listToTest ), FALSE );
 
     // Delete last node
     retval = llist_delete_node ( listToTest, ( llist_node ) 4, trivial_equal, false, NULL );
     ck_assert_int_eq ( retval, LLIST_SUCCESS );
 
     // The list should be empty now
-    temp = 	llist_get_tail	( listToTest );
-    ck_assert_ptr_eq ( temp, NULL );
+    ck_assert_int_eq(llist_is_empty ( listToTest ), TRUE );
 
     llist_destroy ( listToTest, false, NULL );
 }
@@ -310,7 +312,7 @@ END_TEST
 START_TEST ( llist_04_delete_nodes_mt )
 {
     int retval;
-    llist_node temp;
+    //llist_node temp;
     llist listToTest = NULL;
     listToTest = llist_create ( NULL, NULL, MT_SUPPORT_TRUE );
 
@@ -365,17 +367,15 @@ START_TEST ( llist_04_delete_nodes_mt )
     retval = llist_delete_node ( listToTest, ( llist_node ) 2, trivial_equal, false, NULL );
     ck_assert_int_eq ( retval, LLIST_SUCCESS );
 
-    // The list should be empty now
-    temp =  llist_get_tail  ( listToTest );
-    ck_assert_ptr_ne ( temp, NULL );
+    // The list should not be empty now
+    ck_assert_int_eq(llist_is_empty ( listToTest ), FALSE );
 
     // Delete last node
     retval = llist_delete_node ( listToTest, ( llist_node ) 4, trivial_equal, false, NULL );
     ck_assert_int_eq ( retval, LLIST_SUCCESS );
 
     // The list should be empty now
-    temp =  llist_get_tail  ( listToTest );
-    ck_assert_ptr_eq ( temp, NULL );
+    ck_assert_int_eq(llist_is_empty ( listToTest ), TRUE );
 
     llist_destroy ( listToTest, false, NULL );
 }
@@ -781,6 +781,77 @@ START_TEST ( llist_09_list_sort_mt )
 }
 END_TEST
 
+void * list_put_data(void * arg)
+{
+    int64_t i = 50;
+    int retval;
+    ck_assert ( arg != NULL );
+    llist listToTest = (llist)arg;
+    while( i > 0)
+    {
+        retval = llist_add_node ( listToTest, ( llist_node ) i, ADD_NODE_REAR );
+        ck_assert_int_eq ( retval, LLIST_SUCCESS );
+        i --;
+    }
+    return NULL;
+}
+
+void * list_get_data(void * arg)
+{
+    int retval;
+    ck_assert ( arg != NULL );
+    llist listToTest = (llist)arg;
+
+
+    start_waiting:
+
+    retval = llist_delete_node ( listToTest, ( llist_node ) 4, trivial_equal, false, NULL );
+    if ( LLIST_SUCCESS != retval)
+    {
+        //wait for 100 milliseconds
+        printf("find attempted");
+        usleep(1000*100);
+        goto start_waiting;
+    }
+    return NULL;
+}
+
+START_TEST ( llist_10_pure_add_delete_mt )
+{
+
+    int rc = 0;
+    int i = 0;
+    pthread_t threads[2];
+
+    llist listToTest = NULL;
+    listToTest = llist_create ( trivial_comperator , NULL, MT_SUPPORT_TRUE );
+
+    rc = pthread_create(&threads[1], NULL, list_get_data, listToTest);
+    ck_assert_int_eq(rc, 0);
+
+    rc = pthread_create(&threads[0], NULL, list_put_data, listToTest);
+    ck_assert_int_eq(rc, 0);
+
+
+
+    for( i = 0; i < 2; i++)
+    {
+        pthread_join(threads[i], NULL);
+    }
+
+    printf ( "list after deletion: " );
+    print_llist ( listToTest );
+
+
+    rc = llist_delete_node ( listToTest, ( llist_node ) 4, trivial_equal, false, NULL );
+    ck_assert( LLIST_SUCCESS != rc);
+
+
+    llist_destroy ( listToTest, false, NULL );
+
+}
+END_TEST
+
 
 Suite *liblist_suite ( void )
 {
@@ -806,6 +877,9 @@ Suite *liblist_suite ( void )
     tcase_add_test ( tc_core, llist_08_list_reverse_mt );
     tcase_add_test ( tc_core, llist_09_list_sort );
     tcase_add_test ( tc_core, llist_09_list_sort_mt );
+
+    //really multithreaded test case
+    tcase_add_test ( tc_core, llist_10_pure_add_delete_mt );
 
     suite_add_tcase ( s, tc_core );
 

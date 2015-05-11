@@ -75,7 +75,7 @@ typedef struct
 } _llist;
 
 /* Helper functions - not to be exported */
-static _list_node *listsort ( _list_node *list, comperator cmp, int flags );
+static _list_node *listsort ( _list_node *list, _list_node ** updated_tail, comperator cmp, int flags );
 
 llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
 {
@@ -98,7 +98,7 @@ llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
     new_list->tail = NULL;
 
     new_list->ismt = FALSE;
-    if ( flags || MT_SUPPORT_TRUE)
+    if ( flags & MT_SUPPORT_TRUE)
     {
         new_list->ismt = TRUE;
         rc = pthread_rwlockattr_setpshared( &new_list->llist_lock_attr,  PTHREAD_PROCESS_PRIVATE );
@@ -156,10 +156,12 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 
 
 
-    //release any thread related resource, just try to destroy no use checking return code
-    pthread_rwlockattr_destroy(&( ( _llist * ) list )->llist_lock_attr);
-    pthread_rwlock_destroy( &( ( _llist * ) list )->llist_lock);
-
+    if ( TRUE == (( _llist * )list)->ismt )
+    {
+        //release any thread related resource, just try to destroy no use checking return code
+        pthread_rwlockattr_destroy(&( ( _llist * ) list )->llist_lock_attr);
+        pthread_rwlock_destroy( &( ( _llist * ) list )->llist_lock);
+    }
     //release the list
     free ( list );
 
@@ -169,7 +171,7 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 
 int llist_size ( llist list )
 {
-    unsigned int retval;
+    unsigned int retval = 0;
     if ( list == NULL )
     {
         return 0;
@@ -203,7 +205,7 @@ int llist_add_node ( llist list, llist_node node, int flags )
         if ( node_wrapper == NULL )
         {
             UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-                       return LLIST_ERROR;
+            return LLIST_ERROR;
         }
 
         node_wrapper->node = node;
@@ -260,7 +262,15 @@ int llist_delete_node ( llist list, llist_node node, equal alternative,
     WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     {
+
         iterator = ( ( _llist * ) list )->head;
+
+        if ( NULL == iterator)
+        {
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE );
+            return LLIST_NODE_NOT_FOUND;
+        }
+
 
         // is it the first node ?
         if ( actual_equal ( iterator->node, node ) )
@@ -396,7 +406,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
         if ( node_wrapper == NULL )
         {
             UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-                        return LLIST_MALLOC_ERROR;
+            return LLIST_MALLOC_ERROR;
         }
 
         node_wrapper->node = new_node;
@@ -507,16 +517,16 @@ llist_node llist_get_head ( llist list )
 {
     READ_LOCK( list, NULL )
 
-                {
+    {
         if ( list != NULL )
         {
             if ( ( ( _llist * ) list )->head ) // there's at least one node
             {
                 UNLOCK( list, NULL )
-                            return ( ( _llist * ) list )->head->node;
+                return ( ( _llist * ) list )->head->node;
             }
         }
-                }
+    }
 
     UNLOCK( list, NULL )
 
@@ -527,16 +537,16 @@ llist_node llist_get_tail ( llist list )
 {
     READ_LOCK( list, NULL )
 
-                {
+    {
         if ( list != NULL )
         {
             if ( ( ( _llist * ) list )->tail ) // there's at least one node
             {
                 UNLOCK(list, NULL)
-                            return ( ( _llist * ) list )->tail->node;
+                return ( ( _llist * ) list )->tail->node;
             }
         }
-                }
+     }
 
     UNLOCK(list, NULL)
 
@@ -685,7 +695,7 @@ int llist_sort ( llist list, comperator alternative, int flags )
         return LLIST_COMPERATOR_MISSING;
     }
     WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
-    thelist->head = listsort ( thelist->head, cmp, flags);
+    thelist->head = listsort ( thelist->head, &thelist->tail, cmp, flags);
     UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
     /*
      * TODO: update list tail.
@@ -693,7 +703,7 @@ int llist_sort ( llist list, comperator alternative, int flags )
     return LLIST_SUCCESS;
 }
 
-static _list_node *listsort ( _list_node *list, comperator cmp , int flags)
+static _list_node *listsort ( _list_node *list, _list_node ** updated_tail, comperator cmp , int flags)
 {
     _list_node *p, *q, *e, *tail;
     int insize, nmerges, psize, qsize, i;
@@ -791,6 +801,8 @@ static _list_node *listsort ( _list_node *list, comperator cmp , int flags)
         /* Otherwise repeat, merging lists twice the size */
         insize *= 2;
     }
+
+    *updated_tail = tail;
     return list;
 }
 
