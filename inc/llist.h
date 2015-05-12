@@ -34,6 +34,7 @@ typedef enum
 	LLIST_NULL_ARGUMENT,			/**< Error: NULL argument*/
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
     LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
+    LLIST_MULTITHREAD_ISSUE,        /**< Error: Multithreading issue*/
 	LLIST_ERROR						/**< Error: Generic error*/
 } E_LLIST;
 
@@ -46,11 +47,23 @@ typedef enum
 #define SORT_LIST_ASCENDING ( 1<<0 )
 #define SORT_LIST_DESCENDING ~SORT_LIST_ASCENDING
 
+#define MT_SUPPORT_TRUE  (1)
+#define MT_SUPPORT_FALSE (0)
+
+#undef TRUE
+#undef FALSE
+
+#define TRUE (1)
+#define FALSE (0)
+
 typedef void * llist;
 typedef void * llist_node;
 
 // function prototypes
 typedef void ( * node_func ) ( llist_node node );
+
+// function prototypes with user arguments
+typedef void ( * node_func_arg ) ( llist_node node, void* arg );
 
 /**
 * @brief Compares two nodes in a list
@@ -75,9 +88,10 @@ typedef bool ( * equal ) ( llist_node, llist_node );
  * @brief Create a list
  * @param[in] compare_func a function used to compare elements in the list
  * @param[in] equal_func a function used to check if two elements are equal
+ * @param[in] flags used to identify whether we create a thread safe linked-list
  * @return new list if success, NULL on error
  */
-llist llist_create ( comperator compare_func, equal equal_func );
+llist llist_create ( comperator compare_func, equal equal_func, unsigned flags );
 
 /**
  * @brief Destroys a list
@@ -142,6 +156,14 @@ int llist_find_node ( llist list, void * data, llist_node * found, equal alterna
 int llist_for_each ( llist list, node_func func );
 
 /**
+ * @brief operate on each element of the list
+ * @param[in] list the list to operator upon
+ * @param[in] func the function to perform
+ * @param[in] arg passed to func
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_for_each_arg ( llist list, node_func_arg func, void * arg);
+/**
  * @brief sort a lists
  * @param[in] list the list to operator upon
  * @param[in] alternative if unless an alternative comparator function is provided the default will be used
@@ -190,9 +212,9 @@ llist_node llist_pop(llist list);
 /**
  * @brief return the number of elements in the list
  * @param[in] list the list to operate on 
- * @return unsigned int  number of elements in the list
+ * @return int  number of elements in the list or -1 if error
  */
-unsigned int llist_size(llist list);
+int llist_size(llist list);
 
 /**
  * @brief concatenate the second list to the first list
