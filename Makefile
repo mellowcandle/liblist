@@ -1,4 +1,4 @@
-.PHONY: all tests runtests clean install 
+.PHONY: all tests runtests clean install doc
 
 LLIST_OPTS   = 
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
@@ -36,7 +36,10 @@ $(OBJECTS): $(SOURCES) $(HEADERS)
 
 clean:
 	rm -rf $(TEST_OBJECTS) $(OBJECTS) *.gcda *.gcov *.gcno *~ $(TARGET) $(TEST_TARGET)
-	
+
+doc:
+	doxygen Doxyfile
+
 runtests: tests
 	@echo Invoking Test:
 	@echo --------------
