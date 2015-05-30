@@ -245,9 +245,10 @@ int llist_get_max( llist list, llist_node * max);
 /**
  * @brief get the minimum node in a given list
  * @param[in] list the list to operate upon
- * @return the minimum node
+ * @param[out] minumum node
+ * @return int LLIST_SUCCESS if success
  */
-llist_node llist_get_min( llist list );
+int llist_get_min(llist list, llist_node * min);
 
 /**
  * @brief Reverse a list

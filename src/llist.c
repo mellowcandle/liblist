@@ -788,18 +788,7 @@ static _list_node *listsort ( _list_node *list, _list_node ** updated_tail, comp
     return list;
 }
 
-/*
- * TODO: Implement the below functions
- */
-
-int llist_merge ( llist first, llist second)
-{
-	assert (1 == 0); // Fail, function not implemented yet.
-	return LLIST_NOT_IMPLEMENTED;
-}
-
-
-int llist_get_max(llist list, llist_node * max)
+static int llist_get_min_max(llist list, llist_node * output, bool max)
 {
     comperator cmp;
 
@@ -816,13 +805,23 @@ int llist_get_max(llist list, llist_node * max)
     }
 
 	_list_node *iterator = ( ( _llist * ) list )->head;
-	*max = iterator->node;
+	*output = iterator->node;
 	iterator = iterator->next;
 	while (iterator)
 	{
-		if ( cmp(iterator->node, *max) > 0 )
+		if (max) // Find maximum
 		{
-			*max = iterator->node;
+			if ( cmp(iterator->node, *output) > 0 )
+			{
+				*output = iterator->node;
+			}
+		}
+		else // Find minimum
+		{
+			if ( cmp(iterator->node, *output) < 0 )
+			{
+				*output = iterator->node;
+			}
 		}
 		iterator = iterator->next;
 	}
@@ -830,10 +829,14 @@ int llist_get_max(llist list, llist_node * max)
 	return LLIST_SUCCESS;
 }
 
-llist_node llist_get_min(llist list)
+int llist_get_max(llist list, llist_node * max)
 {
-	assert (1 == 0); // Fail, function not implemented yet.
-	return NULL;
+	return llist_get_min_max(list,max,true);
+}
+
+int llist_get_min(llist list, llist_node * min)
+{
+	return llist_get_min_max(list,min,false);
 }
 
 bool llist_is_empty(llist list)
@@ -841,3 +844,13 @@ bool llist_is_empty(llist list)
     return ( ! llist_size ( list ) ) ;
 }
 
+
+/*
+ * TODO: Implement the below functions
+ */
+
+int llist_merge ( llist first, llist second)
+{
+	assert (1 == 0); // Fail, function not implemented yet.
+	return LLIST_NOT_IMPLEMENTED;
+}
