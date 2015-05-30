@@ -483,6 +483,30 @@ START_TEST ( llist_10_pure_add_delete_mt )
 END_TEST
 
 
+START_TEST ( llist_11_find_max )
+{
+    int retval;
+    llist_node max;
+    llist listToTest = NULL;
+    listToTest = llist_create ( trivial_comperator, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE );
+
+    // Insert a 5 nodes 1..5
+    retval = llist_add_node ( listToTest, ( llist_node ) 1, ADD_NODE_REAR );
+    retval = llist_add_node ( listToTest, ( llist_node ) 2, ADD_NODE_REAR );
+    retval = llist_add_node ( listToTest, ( llist_node ) 5, ADD_NODE_REAR );
+    retval = llist_add_node ( listToTest, ( llist_node ) 3, ADD_NODE_REAR );
+    retval = llist_add_node ( listToTest, ( llist_node ) 4, ADD_NODE_REAR );
+
+    retval = llist_get_max( listToTest, &max);
+    ck_assert_int_eq ( retval, LLIST_SUCCESS );
+
+    ck_assert_int_eq ( max, 5 );
+
+    llist_destroy ( listToTest, false, NULL );
+}
+END_TEST
+
+
 Suite *liblist_suite ( void )
 {
     Suite *s = suite_create ( "Lib linked list tester" );
@@ -500,6 +524,7 @@ Suite *liblist_suite ( void )
     tcase_add_test ( tc_core, llist_07_test_stack );
     tcase_add_test ( tc_core, llist_08_list_reverse );
     tcase_add_test ( tc_core, llist_09_list_sort );
+    tcase_add_test ( tc_core, llist_11_find_max );
 
     //really multithreaded test case
     tcase_add_test ( tc_mt, llist_01_create_delete_lists );
@@ -512,6 +537,7 @@ Suite *liblist_suite ( void )
     tcase_add_test ( tc_mt, llist_08_list_reverse );
     tcase_add_test ( tc_mt, llist_09_list_sort );
     tcase_add_test ( tc_mt, llist_10_pure_add_delete_mt );
+    tcase_add_test ( tc_mt, llist_11_find_max );
 
 
     suite_add_tcase ( s, tc_core );
