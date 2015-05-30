@@ -799,10 +799,35 @@ int llist_merge ( llist first, llist second)
 }
 
 
-llist_node llist_get_max(llist list)
+int llist_get_max(llist list, llist_node * max)
 {
-	assert (1 == 0); // Fail, function not implemented yet.
-	return NULL;
+    comperator cmp;
+
+	if ( list == NULL )
+	{
+		return LLIST_NULL_ARGUMENT;
+	}
+
+    cmp =  ( ( _llist * ) list )->comp_func;
+
+ 	if ( cmp == NULL )
+    {
+        return LLIST_COMPERATOR_MISSING;
+    }
+
+	_list_node *iterator = ( ( _llist * ) list )->head;
+	*max = iterator->node;
+	iterator = iterator->next;
+	while (iterator)
+	{
+		if ( cmp(iterator->node, *max) > 0 )
+		{
+			*max = iterator->node;
+		}
+		iterator = iterator->next;
+	}
+
+	return LLIST_SUCCESS;
 }
 
 llist_node llist_get_min(llist list)

@@ -237,9 +237,10 @@ int llist_merge( llist first, llist second );
 /**
  * @brief get the maximum node in a given list
  * @param[in] list the list to operate upon
- * @return the maximum node
+ * @param[out] maximum node
+ * @return int LLIST_SUCCESS if success
  */
-llist_node llist_get_max( llist list );
+int llist_get_max( llist list, llist_node * max);
 
 /**
  * @brief get the minimum node in a given list
