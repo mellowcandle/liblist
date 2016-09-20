@@ -4,7 +4,7 @@ compiler: gcc
 
 before_install:
 - sudo apt-get -qq update
-- sudo apt-get install -y libcheck
+- sudo apt-get install -y check
 
 script:
 - "make all"
