@@ -1,6 +1,6 @@
 .PHONY: all tests runtests clean install doc
 
-LLIST_OPTS   = 
+LLIST_OPTS   =
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs
@@ -20,7 +20,7 @@ OBJECTS = $(SOURCES:.c=.o)
 PREFIX = $(DESTDIR)/usr/local
 BINDIR = $(PREFIX)/bin
 
-all: $(TARGET) 
+all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	mkdir -p $(OBJDIR)

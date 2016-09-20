@@ -2,6 +2,8 @@ liblist - by Ramon Fried (2013)
 =======
 Generic linked list management library in C
 
+[![Build Status](https://travis-ci.org/mellowcandle/liblist.svg?branch=master)](https://travis-ci.org/mellowcandle/liblist)
+
 Prerequisites
 =============
 libllist will build on any Unix like machine.
