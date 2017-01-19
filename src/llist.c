@@ -362,24 +362,19 @@ int llist_for_each ( llist list, node_func func )
         return LLIST_NULL_ARGUMENT;
     }
 
+
+    iterator = ( ( _llist * ) list )->head;
+
+    while ( iterator != NULL )
     {
-
         if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
-        {
-	    return LLIST_SUCCESS;
-        }
+            return LLIST_SUCCESS;
 
-        iterator = ( ( _llist * ) list )->head;
-
-        while ( iterator != NULL )
-        {
-            //func should only read the node but node modify its contents
-	    //user should ensure thread safety
-            func ( iterator->node );
-            iterator = iterator->next;
-        }
+        //func should only read the node but not modify its contents
+	//user should ensure thread safety
+        func ( iterator->node );
+        iterator = iterator->next;
     }
-
     return LLIST_SUCCESS;
 }
 
@@ -394,21 +389,19 @@ int llist_for_each_arg_read_only ( llist list, node_func_arg r_only_func, void *
 
     READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
+
+    iterator = ( ( _llist * ) list )->head;
+
+    while ( iterator != NULL )
     {
-
-        if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
-        {
-            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-	    return LLIST_SUCCESS;
-        }
-
-        iterator = ( ( _llist * ) list )->head;
-
-        while ( iterator != NULL )
-        {
-            r_only_func ( iterator->node , arg);
-            iterator = iterator->next;
-        }
+       if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
+       {
+           UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+           return LLIST_SUCCESS;
+       }
+       //func should only read the node but not modify its contents
+       r_only_func ( iterator->node , arg);
+       iterator = iterator->next;
     }
 
     UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
@@ -428,21 +421,18 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
 
     WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
+    iterator = ( ( _llist * ) list )->head;
+
+    while ( iterator != NULL )
     {
-
-	if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
+        if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
         {
-            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-	    return LLIST_SUCCESS;
+           UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+           return LLIST_SUCCESS;
         }
-
-        iterator = ( ( _llist * ) list )->head;
-
-        while ( iterator != NULL )
-        {
-            func ( iterator->node , arg);
-            iterator = iterator->next;
-        }
+        //func can not only read the node but also modify its contents
+        func ( iterator->node , arg);
+        iterator = iterator->next;
     }
 
     UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
