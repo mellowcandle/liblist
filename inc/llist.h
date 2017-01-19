@@ -33,9 +33,9 @@ typedef enum
 	LLIST_COMPERATOR_MISSING,		/**< Error: Comparator function is missing*/
 	LLIST_NULL_ARGUMENT,			/**< Error: NULL argument*/
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
-    LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
-    LLIST_MULTITHREAD_ISSUE,        /**< Error: Multithreading issue*/
-	LLIST_ERROR						/**< Error: Generic error*/
+        LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
+        LLIST_MULTITHREAD_ISSUE,        /**< Error: Multithreading issue*/
+	LLIST_ERROR,			/**< Error: Generic error*/
 } E_LLIST;
 
 #define ADD_NODE_FRONT		(1 << 0)
@@ -49,6 +49,9 @@ typedef enum
 
 #define MT_SUPPORT_TRUE  (1)
 #define MT_SUPPORT_FALSE (0)
+
+#define LOOP_ABORT_TRUE (1)
+#define LOOP_ABORT_FALSE (1)
 
 #undef TRUE
 #undef FALSE
@@ -148,15 +151,24 @@ int llist_delete_node ( llist list, llist_node node, equal alternative, bool des
 int llist_find_node ( llist list, void * data, llist_node * found, equal alternative );
 
 /**
- * @brief operate on each element of the list
+ * @brief operate on each element of the list, not thread safe if func modifies node contents
  * @param[in] list the list to operator upon
- * @param[in] func the function to perform
+ * @param[in] func
  * @return int LLIST_SUCCESS if success
  */
 int llist_for_each ( llist list, node_func func );
 
 /**
- * @brief operate on each element of the list
+ * @brief operate(R) on each element of the list
+ * @param[in] list the list to operator upon
+ * @param[in] r_only_func the function to perform
+ * @param[in] arg passed to func
+ * @return int LLIST_SUCCESS if success
+ */
+int llist_for_each_arg_read_only ( llist list, node_func_arg r_only_func, void * arg);
+
+/**
+ * @brief operate(R/W) on each element of the list
  * @param[in] list the list to operator upon
  * @param[in] func the function to perform
  * @param[in] arg passed to func

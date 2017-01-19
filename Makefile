@@ -1,5 +1,8 @@
 .PHONY: all tests runtests clean install 
 
+
+OS = ubuntu16.04
+
 LLIST_OPTS   = 
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
@@ -8,6 +11,10 @@ LDFLAGS	     = -shared
 DEBUGFLAGS   = -O0 -D _DEBUG
 RELEASEFLAGS = -O2 -D NDEBUG -combine -fwhole-program
 TEST_LDFLAGS = -lcheck -lpthread -lllist -lm -lrt
+
+ifeq ($(OS),ubuntu16.04)
+   TEST_LDFLAGS += -lsubunit
+endif
 
 OBJDIR	= lib
 TARGET  = $(OBJDIR)/libllist.so
@@ -27,7 +34,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(FLAGS) $(LIBFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
 
 tests: $(TEST_OBJECTS)
-	$(CC) $(FLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(TEST_LDFLAGS)
+	$(CC) $(FLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(TEST_LDFLAGS) -L$(OBJDIR)/
 
 # Need a special rule to compile the lib to allow EXTRA_FLAGS
 $(OBJECTS): $(SOURCES) $(HEADERS)

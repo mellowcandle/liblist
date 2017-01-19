@@ -72,6 +72,9 @@ typedef struct
     pthread_rwlockattr_t llist_lock_attr;
     pthread_rwlock_t llist_lock;
 
+    //abort signal identifier
+    unsigned char should_abort_looping;
+
 } _llist;
 
 /* Helper functions - not to be exported */
@@ -100,6 +103,7 @@ llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
     new_list->ismt = FALSE;
     if ( flags & MT_SUPPORT_TRUE)
     {
+	new_list->should_abort_looping = FALSE;
         new_list->ismt = TRUE;
         rc = pthread_rwlockattr_setpshared( &new_list->llist_lock_attr,  PTHREAD_PROCESS_PRIVATE );
         if ( 0 != rc)
@@ -117,6 +121,15 @@ llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
     }
 
     return new_list;
+}
+
+
+int llist_abort_looping( llist list )
+{
+    if ( NULL == list ) return LLIST_NULL_ARGUMENT; 
+  
+    ( ( _llist * ) list )->should_abort_looping = LOOP_ABORT_TRUE;
+    return LLIST_SUCCESS; 
 }
 
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
@@ -349,16 +362,60 @@ int llist_for_each ( llist list, node_func func )
         return LLIST_NULL_ARGUMENT;
     }
 
-    iterator = ( ( _llist * ) list )->head;
-
-    while ( iterator != NULL )
     {
-        func ( iterator->node );
-        iterator = iterator->next;
+
+        if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
+        {
+	    return LLIST_SUCCESS;
+        }
+
+        iterator = ( ( _llist * ) list )->head;
+
+        while ( iterator != NULL )
+        {
+            //func should only read the node but node modify its contents
+	    //user should ensure thread safety
+            func ( iterator->node );
+            iterator = iterator->next;
+        }
     }
 
     return LLIST_SUCCESS;
 }
+
+int llist_for_each_arg_read_only ( llist list, node_func_arg r_only_func, void * arg )
+{
+    _list_node *iterator;
+
+    if ( ( list == NULL ) || ( r_only_func  == NULL ) )
+    {
+        return LLIST_NULL_ARGUMENT;
+    }
+
+    READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
+
+    {
+
+        if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
+        {
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+	    return LLIST_SUCCESS;
+        }
+
+        iterator = ( ( _llist * ) list )->head;
+
+        while ( iterator != NULL )
+        {
+            r_only_func ( iterator->node , arg);
+            iterator = iterator->next;
+        }
+    }
+
+    UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+
+    return LLIST_SUCCESS;
+}
+
 
 int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
 {
@@ -369,9 +426,15 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
         return LLIST_NULL_ARGUMENT;
     }
 
-    READ_LOCK( list, LLIST_MULTITHREAD_ISSUE )
+    WRITE_LOCK( list, LLIST_MULTITHREAD_ISSUE )
 
     {
+
+	if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
+        {
+            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
+	    return LLIST_SUCCESS;
+        }
 
         iterator = ( ( _llist * ) list )->head;
 
@@ -386,6 +449,7 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
 
     return LLIST_SUCCESS;
 }
+
 
 int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
                         int flags )
