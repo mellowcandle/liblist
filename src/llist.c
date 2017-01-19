@@ -124,11 +124,11 @@ llist llist_create ( comperator compare_func, equal equal_func, unsigned flags)
 }
 
 
-int llist_abort_looping( llist list )
+int set_abort_condition( llist list , E_LLIST_LOOP_CONDITION cond )
 {
     if ( NULL == list ) return LLIST_NULL_ARGUMENT; 
-  
-    ( ( _llist * ) list )->should_abort_looping = LOOP_ABORT_TRUE;
+
+    ( ( _llist * ) list )->should_abort_looping = cond;
     return LLIST_SUCCESS; 
 }
 

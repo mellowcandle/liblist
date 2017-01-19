@@ -50,8 +50,11 @@ typedef enum
 #define MT_SUPPORT_TRUE  (1)
 #define MT_SUPPORT_FALSE (0)
 
-#define LOOP_ABORT_TRUE (1)
-#define LOOP_ABORT_FALSE (1)
+typedef enum
+{
+    LOOP_ABORT_FALSE = 0, 
+    LOOP_ABORT_TRUE
+}E_LLIST_LOOP_CONDITION;
 
 #undef TRUE
 #undef FALSE
@@ -95,6 +98,17 @@ typedef bool ( * equal ) ( llist_node, llist_node );
  * @return new list if success, NULL on error
  */
 llist llist_create ( comperator compare_func, equal equal_func, unsigned flags );
+
+
+/**
+ * @brief set abort condition 
+ * @param[in] compare_func a function used to compare elements in the list
+ * @param[in] equal_func a function used to check if two elements are equal
+ * @param[in] flags used to identify whether we create a thread safe linked-list
+ * @return new list if success, NULL on error
+ */
+
+int llist_abort_looping( llist list );
 
 /**
  * @brief Destroys a list
