@@ -368,7 +368,7 @@ int llist_for_each ( llist list, node_func func )
     while ( iterator != NULL )
     {
         if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
-            return LLIST_SUCCESS;
+            return LLIST_ITERARTIONS_ABORTED;
 
         //func should only read the node but not modify its contents
 	//user should ensure thread safety
@@ -397,7 +397,7 @@ int llist_for_each_arg_read_only ( llist list, node_func_arg r_only_func, void *
        if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
        {
            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-           return LLIST_SUCCESS;
+           return LLIST_ITERARTIONS_ABORTED;
        }
        //func should only read the node but not modify its contents
        r_only_func ( iterator->node , arg);
@@ -428,7 +428,7 @@ int llist_for_each_arg ( llist list, node_func_arg func, void * arg )
         if ( ( ( _llist * ) list )->should_abort_looping == LOOP_ABORT_TRUE )
         {
            UNLOCK( list, LLIST_MULTITHREAD_ISSUE )
-           return LLIST_SUCCESS;
+           return LLIST_ITERARTIONS_ABORTED;
         }
         //func can not only read the node but also modify its contents
         func ( iterator->node , arg);

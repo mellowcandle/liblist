@@ -35,7 +35,8 @@ typedef enum
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
         LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
         LLIST_MULTITHREAD_ISSUE,        /**< Error: Multithreading issue*/
-	LLIST_ERROR			/**< Error: Generic error*/
+	LLIST_ERROR,			/**< Error: Generic error*/
+	LLIST_ITERARTIONS_ABORTED      /*code indicated iterations on the linked list was aborted*/
 } E_LLIST;
 
 #define ADD_NODE_FRONT		(1 << 0)
@@ -53,7 +54,7 @@ typedef enum
 typedef enum
 {
     LOOP_ABORT_FALSE = 0, 
-    LOOP_ABORT_TRUE
+    LOOP_ABORT_TRUE, 
 }E_LLIST_LOOP_CONDITION;
 
 #undef TRUE
