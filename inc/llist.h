@@ -35,7 +35,7 @@ typedef enum
 	LLIST_MALLOC_ERROR,				/**< Error: Memory allocation error*/
         LLIST_NOT_IMPLEMENTED,          /**< Error: Implementation missing*/
         LLIST_MULTITHREAD_ISSUE,        /**< Error: Multithreading issue*/
-	LLIST_ERROR,			/**< Error: Generic error*/
+	LLIST_ERROR			/**< Error: Generic error*/
 } E_LLIST;
 
 #define ADD_NODE_FRONT		(1 << 0)
@@ -153,7 +153,7 @@ int llist_find_node ( llist list, void * data, llist_node * found, equal alterna
 /**
  * @brief operate on each element of the list, not thread safe if func modifies node contents
  * @param[in] list the list to operator upon
- * @param[in] func
+ * @param[in] func the function to perform
  * @return int LLIST_SUCCESS if success
  */
 int llist_for_each ( llist list, node_func func );

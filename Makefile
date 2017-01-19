@@ -1,7 +1,7 @@
 .PHONY: all tests runtests clean install 
 
 
-OS = ubuntu16.04
+OS =
 
 LLIST_OPTS   = 
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
