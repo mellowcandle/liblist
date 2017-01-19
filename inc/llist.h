@@ -102,13 +102,11 @@ llist llist_create ( comperator compare_func, equal equal_func, unsigned flags )
 
 /**
  * @brief set abort condition 
- * @param[in] compare_func a function used to compare elements in the list
- * @param[in] equal_func a function used to check if two elements are equal
- * @param[in] flags used to identify whether we create a thread safe linked-list
- * @return new list if success, NULL on error
+ * @param[in] list The list to act on
+ * @param[in] cond to abort iterations on each node of the linked list
+ * @return SUCESS on success or NULL on failure 
  */
-
-int llist_abort_looping( llist list );
+int llist_set_abort_condition( llist list , E_LLIST_LOOP_CONDITION cond );
 
 /**
  * @brief Destroys a list
