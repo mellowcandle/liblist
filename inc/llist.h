@@ -100,14 +100,21 @@ typedef bool ( * equal ) ( llist_node, llist_node );
  */
 llist llist_create ( comperator compare_func, equal equal_func, unsigned flags );
 
-
 /**
  * @brief set abort condition 
  * @param[in] list The list to act on
  * @param[in] cond to abort iterations on each node of the linked list
- * @return SUCESS on success or NULL on failure 
+ * @return SUCESS on success or failure codes on failure 
  */
 int llist_set_abort_condition( llist list , E_LLIST_LOOP_CONDITION cond );
+
+/**
+ * @brief get abort condition 
+ * @param[in] list The list to act on
+ * @param[in] cond pointer
+ * @return SUCESS on success or failure codes on failure 
+ */
+int llist_get_abort_condition( llist list , E_LLIST_LOOP_CONDITION* cond);
 
 /**
  * @brief Destroys a list
@@ -116,10 +123,9 @@ int llist_set_abort_condition( llist list , E_LLIST_LOOP_CONDITION cond );
  * @param[in] list The list to destroy
  * @param[in] destroy_nodes true if the nodes should be destroyed, false if not
  * @param[in] destructor alternative destructor, if the previous param is true,
- *			  if NULL is provided standard library c free() will be used
+ *			 if NULL is provided standard library c free() will be used
  */
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor);
-
 
 /**
  * @brief Add a node to a list

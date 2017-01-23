@@ -132,6 +132,14 @@ int llist_set_abort_condition( llist list , E_LLIST_LOOP_CONDITION cond )
     return LLIST_SUCCESS; 
 }
 
+int llist_get_abort_condition( llist list , E_LLIST_LOOP_CONDITION* cond)
+{
+    if ( NULL == list ) return LLIST_NULL_ARGUMENT;
+
+    *cond = ( ( _llist * ) list )->should_abort_looping;
+    return LLIST_SUCCESS; 
+}
+
 void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 {
     _list_node *iterator;

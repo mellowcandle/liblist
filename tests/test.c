@@ -854,6 +854,78 @@ START_TEST ( llist_10_pure_add_delete_mt )
 }
 END_TEST
 
+void loop( llist_node node , void * arg )
+{
+    llist listToTest = (llist)arg;
+    E_LLIST_LOOP_CONDITION cond;  
+    while(1)
+    {
+	llist_get_abort_condition( listToTest , &cond);	
+        if ( LOOP_ABORT_TRUE == cond ) break;
+    }
+}
+
+void * list_loop_through(void * arg)
+{
+    ck_assert ( arg != NULL );
+    llist listToTest = (llist)arg;
+
+    llist_for_each_arg(listToTest, loop, listToTest);
+   
+    return NULL;
+}
+
+
+START_TEST ( llist_10_abort_loop)
+{
+
+    int rc = 0;
+    int i = 0;
+    pthread_t threads[10];
+
+    llist listToTest = NULL;
+    listToTest = llist_create ( trivial_comperator , NULL, MT_SUPPORT_TRUE );
+
+    
+    rc = pthread_create(&threads[0], NULL, list_put_data, listToTest);
+    ck_assert_int_eq(rc, 0);
+
+    for ( i = 1; i < 10; i++)
+    {
+        rc = pthread_create(&threads[i], NULL, list_loop_through, listToTest);
+        ck_assert_int_eq(rc, 0);
+    }
+
+    sleep(10);
+
+    rc = llist_set_abort_condition( listToTest , LOOP_ABORT_TRUE); 
+    ck_assert_int_eq(rc, 0);
+
+    for( i = 0; i < 10; i++)
+    {
+        pthread_join(threads[i], NULL);
+    }
+    printf("All threads joined");
+
+    
+    printf ( "list after aborting: " );
+    print_llist ( listToTest );
+
+    //reset abort condition
+    rc = llist_set_abort_condition( listToTest , LOOP_ABORT_FALSE); 
+    ck_assert_int_eq(rc, 0);
+    print_llist ( listToTest );
+
+
+    rc = llist_delete_node ( listToTest, ( llist_node ) 4, trivial_equal, false, NULL );
+    ck_assert( LLIST_SUCCESS == rc);
+
+
+    llist_destroy ( listToTest, false, NULL );
+
+}
+END_TEST
+
 
 Suite *liblist_suite ( void )
 {
@@ -882,6 +954,7 @@ Suite *liblist_suite ( void )
 
     //really multithreaded test case
     tcase_add_test ( tc_core, llist_10_pure_add_delete_mt );
+    tcase_add_test ( tc_core, llist_10_abort_loop);
 
     suite_add_tcase ( s, tc_core );
 

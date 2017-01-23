@@ -1,7 +1,7 @@
 .PHONY: all tests runtests clean install 
 
 
-OS =
+OS =ubuntu16.04
 
 LLIST_OPTS   = 
 CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
@@ -34,7 +34,7 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(FLAGS) $(LIBFLAGS) $(DEBUGFLAGS) -o $(TARGET) $(OBJECTS)
 
 tests: $(TEST_OBJECTS)
-	$(CC) $(FLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(TEST_LDFLAGS) -L$(OBJDIR)/
+	$(CC) $(FLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(TEST_LDFLAGS) -L$(OBJDIR)
 
 # Need a special rule to compile the lib to allow EXTRA_FLAGS
 $(OBJECTS): $(SOURCES) $(HEADERS)
