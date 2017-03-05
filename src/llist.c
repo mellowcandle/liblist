@@ -256,8 +256,8 @@ int llist_add_node ( llist list, llist_node node, int flags )
     return LLIST_SUCCESS;
 }
 
-int llist_delete_node ( llist list, llist_node node, equal alternative,
-                        bool destroy_node, node_func destructor )
+int llist_delete_node ( llist list, llist_node node,
+		bool destroy_node, node_func destructor )
 {
     _list_node *iterator;
     _list_node *temp;
@@ -270,12 +270,7 @@ int llist_delete_node ( llist list, llist_node node, equal alternative,
 
     actual_equal = ( ( _llist * ) list )->equal_func;
 
-    if ( alternative )
-    {
-        actual_equal = alternative;
-    }
-
-    if ( actual_equal == NULL )
+	if ( actual_equal == NULL )
     {
         return LLIST_EQUAL_MISSING;
     }
@@ -527,8 +522,7 @@ int llist_insert_node ( llist list, llist_node new_node, llist_node pos_node,
 
 }
 
-int llist_find_node ( llist list, void *data, llist_node *found,
-                      equal alternative )
+int llist_find_node ( llist list, void *data, llist_node *found)
 {
     _list_node *iterator;
     equal actual_equal;
@@ -538,11 +532,6 @@ int llist_find_node ( llist list, void *data, llist_node *found,
     }
 
     actual_equal = ( ( _llist * ) list )->equal_func;
-
-    if ( alternative )
-    {
-        actual_equal = alternative;
-    }
 
     if ( actual_equal == NULL )
     {
@@ -732,7 +721,7 @@ int llist_reverse ( llist list )
     return LLIST_SUCCESS;
 }
 
-int llist_sort ( llist list, comperator alternative, int flags )
+int llist_sort ( llist list, int flags )
 {
 
     comperator cmp;
@@ -740,19 +729,12 @@ int llist_sort ( llist list, comperator alternative, int flags )
     {
         return LLIST_NULL_ARGUMENT;
     }
-    if ( alternative )
-    {
-        cmp = alternative;
-    }
-    _llist *thelist = ( _llist * ) list;
+
+ 	_llist *thelist = ( _llist * ) list;
 
     cmp =  thelist->comp_func;
-    if ( alternative )
-    {
-        cmp = alternative;
-    }
 
-    if ( cmp == NULL )
+ 	if ( cmp == NULL )
     {
         return LLIST_COMPERATOR_MISSING;
     }
@@ -868,27 +850,55 @@ static _list_node *listsort ( _list_node *list, _list_node ** updated_tail, comp
     return list;
 }
 
-/*
- * TODO: Implement the below functions
- */
-
-int llist_merge ( llist first, llist second, comperator alternative )
+static int llist_get_min_max(llist list, llist_node * output, bool max)
 {
-	assert (1 == 0); // Fail, function not implemented yet.
-	return LLIST_NOT_IMPLEMENTED;
+    comperator cmp;
+
+	if ( list == NULL )
+	{
+		return LLIST_NULL_ARGUMENT;
+	}
+
+    cmp =  ( ( _llist * ) list )->comp_func;
+
+ 	if ( cmp == NULL )
+    {
+        return LLIST_COMPERATOR_MISSING;
+    }
+
+	_list_node *iterator = ( ( _llist * ) list )->head;
+	*output = iterator->node;
+	iterator = iterator->next;
+	while (iterator)
+	{
+		if (max) // Find maximum
+		{
+			if ( cmp(iterator->node, *output) > 0 )
+			{
+				*output = iterator->node;
+			}
+		}
+		else // Find minimum
+		{
+			if ( cmp(iterator->node, *output) < 0 )
+			{
+				*output = iterator->node;
+			}
+		}
+		iterator = iterator->next;
+	}
+
+	return LLIST_SUCCESS;
 }
 
-
-llist_node llist_get_max(llist list, comperator alternative)
+int llist_get_max(llist list, llist_node * max)
 {
-	assert (1 == 0); // Fail, function not implemented yet.
-	return NULL;
+	return llist_get_min_max(list,max,true);
 }
 
-llist_node llist_get_min(llist list, comperator alternative)
+int llist_get_min(llist list, llist_node * min)
 {
-	assert (1 == 0); // Fail, function not implemented yet.
-	return NULL;
+	return llist_get_min_max(list,min,false);
 }
 
 bool llist_is_empty(llist list)
@@ -896,3 +906,13 @@ bool llist_is_empty(llist list)
     return ( ! llist_size ( list ) ) ;
 }
 
+
+/*
+ * TODO: Implement the below functions
+ */
+
+int llist_merge ( llist first, llist second)
+{
+	assert (1 == 0); // Fail, function not implemented yet.
+	return LLIST_NOT_IMPLEMENTED;
+}

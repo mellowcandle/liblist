@@ -1,0 +1,12 @@
+language: c
+
+compiler: gcc
+
+before_install:
+- sudo apt-get -qq update
+- sudo apt-get install -y check
+
+script:
+- "make all"
+- "sudo make install"
+  #- "make runtests"

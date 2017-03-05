@@ -1,9 +1,8 @@
 liblist - by Ramon Fried (2013)
 =======
 Generic linked list management library in C
-The library is not thread safe. if it is used in multithreaded environment, 
-the user should take care to sync the access to the list.
-Library implementation is straight forward.
+
+[![Build Status](https://travis-ci.org/mellowcandle/liblist.svg?branch=master)](https://travis-ci.org/mellowcandle/liblist)
 
 Prerequisites
 =============
