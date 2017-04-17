@@ -169,6 +169,44 @@ void llist_destroy ( llist list, bool destroy_nodes, node_func destructor )
 
 }
 
+void llist_clean( llist list, bool destroy_nodes, node_func destructor ){ // Remove all nodes.
+	if ( list == NULL )
+		return;
+    _list_node *iterator;
+    _list_node *next;
+	READ_LOCK(list, NULL)
+    // Delete the data contained in the nodes
+    iterator = ( ( _llist * ) list )->head;
+
+    while ( iterator != NULL )
+    {
+
+        if ( destroy_nodes )
+        {
+
+            if ( destructor )
+            {
+                destructor ( iterator->node );
+            }
+            else
+            {
+                free ( iterator->node );
+            }
+        }
+
+        next = iterator->next;
+
+        free ( iterator ); // Delete's the container
+
+        iterator = next;
+    }
+	// Reset the list
+    ( ( _llist * ) list )->count = 0;
+    ( ( _llist * ) list )->head = NULL;
+    ( ( _llist * ) list )->tail = NULL;
+	UNLOCK( list, NULL )
+}
+
 int llist_size ( llist list )
 {
     unsigned int retval = 0;
