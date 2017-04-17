@@ -7,7 +7,7 @@ LIBFLAGS	 = -fPIC -shared -fprofile-arcs
 LDFLAGS	     = -shared
 DEBUGFLAGS   = -O0 -D _DEBUG
 RELEASEFLAGS = -O2 -D NDEBUG -combine -fwhole-program
-TEST_LDFLAGS = -lcheck -lpthread -lllist -lm -lrt
+TEST_LDFLAGS = -lcheck -lpthread -lsubunit -L$(OBJDIR) -lllist -lm -lrt
 
 OBJDIR	= lib
 TARGET  = $(OBJDIR)/libllist.so
@@ -43,7 +43,7 @@ doc:
 runtests: tests
 	@echo Invoking Test:
 	@echo --------------
-	@./$(TEST_TARGET)
+	@LD_LIBRARY_PATH=$(OBJDIR) ./$(TEST_TARGET)
 	@echo Test Coverage:
 	@echo --------------
 	@gcov -osrc llist.c
