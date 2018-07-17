@@ -264,4 +264,17 @@ int llist_reverse( llist list );
  */
 bool llist_is_empty( llist list );
 
+#define  llist_queue_init() llist_create(0,0, MT_SUPPORT_TRUE)
+
+
+#define llist_queue_deinit(list) llist_destroy (list,0,0 )
+
+
+#define llist_queue_size(list) llist_size(list)
+
+
+#define llist_queue(list,node) llist_add_node ( list, node, ADD_NODE_REAR )
+
+#define llist_dequeue(list) llist_pop (list)
+
 #endif /* LLIST_H_ */
