@@ -55,7 +55,7 @@ void print_llist(llist list)
 START_TEST(llist_01_create_delete_lists)
 {
 	llist listToTest = NULL;
-	listToTest = llist_create(NULL, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, NULL, test_mt ? FLAG_MT_SUPPORT : 0);
 	ck_assert_ptr_ne(listToTest, NULL);
 	llist_destroy(listToTest, false, NULL);
 }
@@ -66,7 +66,8 @@ START_TEST(llist_02_add_nodes)
 	int retval;
 	llist listToTest = NULL;
 	llist_node retptr;
-	listToTest = llist_create(NULL, trivial_equal, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, trivial_equal, test_mt ?
+				  FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_FRONT);
@@ -111,7 +112,8 @@ START_TEST(llist_03_add_dynamic_nodes)
 
 	llist listToTest = NULL;
 	llist_node retptr;
-	listToTest = llist_create(NULL, trivial_equal, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, trivial_equal, test_mt ?
+				  FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) data[0], ADD_NODE_FRONT);
@@ -144,7 +146,8 @@ START_TEST(llist_04_delete_nodes)
 	int retval;
 	//llist_node temp;
 	llist listToTest = NULL;
-	listToTest = llist_create(NULL, trivial_equal,  test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, trivial_equal,
+				  test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_FRONT);
@@ -194,27 +197,26 @@ START_TEST(llist_04_delete_nodes)
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	// The list should not  be empty now
-	ck_assert_int_eq(llist_is_empty(listToTest), FALSE);
+	ck_assert_int_eq(llist_is_empty(listToTest), false);
 
-	ck_assert_int_eq(llist_is_empty(listToTest), FALSE);
+	ck_assert_int_eq(llist_is_empty(listToTest), false);
 
 	// Delete last node
 	retval = llist_delete_node(listToTest, (llist_node) 4, false, NULL);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	// The list should be empty now
-	ck_assert_int_eq(llist_is_empty(listToTest), TRUE);
+	ck_assert_int_eq(llist_is_empty(listToTest), true);
 
 	llist_destroy(listToTest, false, NULL);
 }
 END_TEST
 
-
 START_TEST(llist_05_list_for_each)
 {
 	int retval;
 	llist listToTest = NULL;
-	listToTest = llist_create(NULL, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, NULL, test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
@@ -244,7 +246,8 @@ START_TEST(llist_06_insert_nodes)
 	int retval;
 	llist listToTest = NULL;
 	llist_node retptr;
-	listToTest = llist_create(NULL, trivial_equal, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, trivial_equal,
+				  test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_FRONT);
@@ -270,7 +273,8 @@ START_TEST(llist_06_insert_nodes)
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	// Add node before
-	retval =  llist_insert_node(listToTest, (llist_node) 7, retptr, ADD_NODE_BEFORE);
+	retval =  llist_insert_node(listToTest, (llist_node) 7, retptr,
+				    ADD_NODE_BEFORE);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	printf("List after adding before 3 node: ");
@@ -278,7 +282,8 @@ START_TEST(llist_06_insert_nodes)
 
 
 	// Add node after
-	retval =  llist_insert_node(listToTest, (llist_node) 8, retptr, ADD_NODE_AFTER);
+	retval =  llist_insert_node(listToTest, (llist_node) 8, retptr,
+				    ADD_NODE_AFTER);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	printf("List after adding after 3 node: ");
@@ -288,7 +293,8 @@ START_TEST(llist_06_insert_nodes)
 	retval = llist_find_node(listToTest, (llist_node) 5, &retptr);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
-	retval =  llist_insert_node(listToTest, (llist_node) 9, retptr, ADD_NODE_BEFORE);
+	retval = llist_insert_node(listToTest, (llist_node) 9, retptr,
+				   ADD_NODE_BEFORE);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	printf("List after adding 9 before the first node: ");
@@ -299,7 +305,8 @@ START_TEST(llist_06_insert_nodes)
 	retval = llist_find_node(listToTest, (llist_node) 9, &retptr);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
-	retval =  llist_insert_node(listToTest, (llist_node) 10, retptr, ADD_NODE_AFTER);
+	retval =  llist_insert_node(listToTest, (llist_node) 10, retptr,
+				    ADD_NODE_AFTER);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	printf("List after adding 10 after the first node: ");
@@ -309,7 +316,8 @@ START_TEST(llist_06_insert_nodes)
 	retval = llist_find_node(listToTest, (llist_node) 1, &retptr);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
-	retval =  llist_insert_node(listToTest, (llist_node) 11, retptr, ADD_NODE_AFTER);
+	retval =  llist_insert_node(listToTest, (llist_node) 11, retptr,
+				    ADD_NODE_AFTER);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
 
 	printf("List after adding 11 after the last node: ");
@@ -319,13 +327,12 @@ START_TEST(llist_06_insert_nodes)
 }
 END_TEST
 
-
 START_TEST(llist_07_test_stack)
 {
 	int retval;
 	llist listToTest = NULL;
 	llist_node retptr;
-	listToTest = llist_create(NULL, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, NULL, test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Push 1000 nodes
 	for(unsigned long i = 0; i < 1000; i ++) {
@@ -353,7 +360,7 @@ START_TEST(llist_08_list_reverse)
 {
 	int retval;
 	llist listToTest = NULL;
-	listToTest = llist_create(NULL, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(NULL, NULL, test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
@@ -379,7 +386,8 @@ START_TEST(llist_09_list_sort)
 {
 	int retval;
 	llist listToTest = NULL;
-	listToTest = llist_create(trivial_comperator, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(trivial_comperator, NULL,
+				  test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 3, ADD_NODE_REAR);
@@ -414,7 +422,8 @@ void * list_put_data(void * arg)
 	ck_assert(arg != NULL);
 	llist listToTest = (llist)arg;
 	while(i > 0) {
-		retval = llist_add_node(listToTest, (llist_node) i, ADD_NODE_REAR);
+		retval = llist_add_node(listToTest, (llist_node)i,
+					ADD_NODE_REAR);
 		ck_assert_int_eq(retval, LLIST_SUCCESS);
 		i --;
 	}
@@ -427,9 +436,7 @@ void * list_get_data(void * arg)
 	ck_assert(arg != NULL);
 	llist listToTest = (llist)arg;
 
-
 start_waiting:
-
 	retval = llist_delete_node(listToTest, (llist_node) 4, false, NULL);
 	if(LLIST_SUCCESS != retval) {
 		//wait for 100 milliseconds
@@ -443,21 +450,19 @@ start_waiting:
 
 START_TEST(llist_10_pure_add_delete_mt)
 {
-
 	int rc = 0;
 	int i = 0;
 	pthread_t threads[2];
 
 	llist listToTest = NULL;
-	listToTest = llist_create(trivial_comperator, trivial_equal, MT_SUPPORT_TRUE);
+	listToTest = llist_create(trivial_comperator, trivial_equal,
+				  FLAG_MT_SUPPORT);
 
 	rc = pthread_create(&threads[1], NULL, list_get_data, listToTest);
 	ck_assert_int_eq(rc, 0);
 
 	rc = pthread_create(&threads[0], NULL, list_put_data, listToTest);
 	ck_assert_int_eq(rc, 0);
-
-
 
 	for(i = 0; i < 2; i++) {
 		pthread_join(threads[i], NULL);
@@ -466,23 +471,20 @@ START_TEST(llist_10_pure_add_delete_mt)
 	printf("list after deletion: ");
 	print_llist(listToTest);
 
-
 	rc = llist_delete_node(listToTest, (llist_node) 4, false, NULL);
 	ck_assert(LLIST_SUCCESS != rc);
 
-
 	llist_destroy(listToTest, false, NULL);
-
 }
 END_TEST
-
 
 START_TEST(llist_11_find_min_max)
 {
 	int retval;
 	llist_node min_max;
 	llist listToTest = NULL;
-	listToTest = llist_create(trivial_comperator, NULL, test_mt ? MT_SUPPORT_FALSE : MT_SUPPORT_TRUE);
+	listToTest = llist_create(trivial_comperator, NULL,
+				  test_mt ? FLAG_MT_SUPPORT : 0);
 
 	// Insert a 5 nodes 1..5
 	retval = llist_add_node(listToTest, (llist_node) 2, ADD_NODE_REAR);
@@ -491,19 +493,17 @@ START_TEST(llist_11_find_min_max)
 	retval = llist_add_node(listToTest, (llist_node) 4, ADD_NODE_REAR);
 	retval = llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
 
-
 	retval = llist_get_max(listToTest, &min_max);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
-	ck_assert_int_eq(min_max, 5);
+	ck_assert_int_eq((long)min_max, 5);
 
 	retval = llist_get_min(listToTest, &min_max);
 	ck_assert_int_eq(retval, LLIST_SUCCESS);
-	ck_assert_int_eq(min_max, 1);
+	ck_assert_int_eq((long)min_max, 1);
 
 	llist_destroy(listToTest, false, NULL);
 }
 END_TEST
-
 
 Suite *liblist_suite(void)
 {
@@ -537,7 +537,6 @@ Suite *liblist_suite(void)
 	tcase_add_test(tc_mt, llist_10_pure_add_delete_mt);
 	tcase_add_test(tc_mt, llist_11_find_min_max);
 
-
 	suite_add_tcase(s, tc_core);
 	suite_add_tcase(s, tc_mt);
 	return s;
@@ -557,6 +556,3 @@ int main(void)
 	srunner_free(sr);
 	return (number_failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-
-
-
