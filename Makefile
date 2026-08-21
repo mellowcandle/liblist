@@ -7,7 +7,11 @@ LIBFLAGS	 = -fPIC -shared -fprofile-arcs
 LDFLAGS	     = -shared
 DEBUGFLAGS   = -O0 -D _DEBUG
 RELEASEFLAGS = -O2 -D NDEBUG
-TEST_LDFLAGS = -lcheck -lpthread -L$(OBJDIR) -lllist -lm -lrt
+# Pull Check's link flags from pkg-config so we pick up its transitive deps
+# (notably -lsubunit, which a statically-built libcheck needs). Fall back to
+# a plain -lcheck if pkg-config or the .pc file isn't available.
+CHECK_LIBS   = $(shell pkg-config --libs check 2>/dev/null || echo -lcheck)
+TEST_LDFLAGS = -L$(OBJDIR) -lllist $(CHECK_LIBS) -lpthread -lm -lrt
 
 OBJDIR	= lib
 TARGET  = $(OBJDIR)/libllist.so
