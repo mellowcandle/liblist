@@ -18,10 +18,7 @@
 #include "../inc/llist.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <pthread.h>
-
-#define LOG_FUNC_ENTRANCE() printf("%lu: In %s\n", time(NULL), __PRETTY_FUNCTION__);
 
 typedef struct __list_node {
 	llist_node node;
@@ -65,6 +62,30 @@ static inline void unlock(llist list)
 {
 	if (((_llist *)list)->ismt)
 		pthread_rwlock_unlock(&((_llist *) list)->llist_lock);
+}
+
+/*
+ * Lock two lists for writing in a fixed (address) order so that concurrent
+ * concat/merge calls on the same pair can't deadlock (AB/BA).
+ */
+static inline void write_lock_two(llist a, llist b)
+{
+	if (a == b) {
+		write_lock(a);
+	} else if (a < b) {
+		write_lock(a);
+		write_lock(b);
+	} else {
+		write_lock(b);
+		write_lock(a);
+	}
+}
+
+static inline void unlock_two(llist a, llist b)
+{
+	unlock(a);
+	if (a != b)
+		unlock(b);
 }
 
 /* Helper functions - not to be exported */
@@ -228,56 +249,59 @@ int llist_delete_node(llist list, llist_node node,
 
 	// is it the first node ?
 	if (actual_equal(iterator->node, node)) {
+		((_llist *) list)->head = iterator->next;
+		((_llist *) list)->count--;
+
+		if (((_llist *) list)->count == 0) {
+			/*
+			 *  if we deleted the last node, we need to reset the tail
+			 *  also, because the last node must be the head (and tail)
+			 */
+			((_llist *) list)->tail = NULL;
+		}
+
 		if (destroy_node) {
 			if (destructor)
 				destructor(iterator->node);
 			else
 				free(iterator->node);
-			}
+		}
 
-			((_llist *) list)->head = ((_llist *) list)->head->next;
-			free(iterator);
+		free(iterator);
+		unlock(list);
+		return LLIST_SUCCESS;
+	}
+
+	while (iterator->next != NULL) {
+		if (actual_equal(iterator->next->node, node)) {
+			// found it
+			temp = iterator->next;
+			iterator->next = temp->next;
+
+			// if we unlinked the tail, the tail is now the predecessor
+			if (temp == ((_llist *) list)->tail)
+				((_llist *) list)->tail = iterator;
+
 			((_llist *) list)->count--;
 
-			if (((_llist *) list)->count == 0) {
-				/*
-				 *  if we deleted the last node, we need to reset the tail also
-				 *  There's no need to check it somewhere else, because the last node must be the head (and tail)
-				 */
-				((_llist *) list)->tail = NULL;
+			if (destroy_node) {
+				if (destructor)
+					destructor(temp->node);
+				else
+					free(temp->node);
 			}
-			//assert ( ( ( _llist * ) list )->count >= 0 );
+
+			free(temp);
 			unlock(list);
 			return LLIST_SUCCESS;
-	} else {
-		while (iterator->next != NULL) {
-			if (actual_equal(iterator->next->node, node)) {
-				// found it
-				temp = iterator->next;
-				iterator->next = temp->next;
-				free(temp);
-
-				((_llist *) list)->count--;
-				//assert ( ( ( _llist * ) list )->count >= 0 );
-
-				unlock(list);
-				return LLIST_SUCCESS;
-			}
-
-				iterator = iterator->next;
-			}
 		}
 
-		if (iterator->next == NULL) {
-			unlock(list);
-			return LLIST_NODE_NOT_FOUND;
-		}
+		iterator = iterator->next;
+	}
 
-	//assert ( 1 == 2 );
-	// this assert always failed. we assume that the function never gets here...
 	unlock(list);
 
-	return LLIST_ERROR;
+	return LLIST_NODE_NOT_FOUND;
 }
 
 int llist_for_each(llist list, node_func func)
@@ -287,12 +311,16 @@ int llist_for_each(llist list, node_func func)
 	if ((list == NULL) || (func == NULL))
 		return LLIST_NULL_ARGUMENT;
 
+	read_lock(list);
+
 	iterator = ((_llist *) list)->head;
 
 	while (iterator != NULL) {
 		func(iterator->node);
 		iterator = iterator->next;
 	}
+
+	unlock(list);
 
 	return LLIST_SUCCESS;
 }
@@ -327,19 +355,22 @@ int llist_insert_node(llist list, llist_node new_node, llist_node pos_node,
 	if ((list == NULL) || (new_node == NULL) || (pos_node == NULL))
 		return LLIST_NULL_ARGUMENT;
 
-	write_lock(list);
 	node_wrapper = malloc(sizeof(_list_node));
-
-	if (node_wrapper == NULL) {
-		unlock(list);
+	if (node_wrapper == NULL)
 		return LLIST_MALLOC_ERROR;
-	}
 
 	node_wrapper->node = new_node;
 
-	((_llist *) list)->count++;
+	write_lock(list);
 
 	iterator = ((_llist *) list)->head;
+
+	if (iterator == NULL) {
+		// empty list, pos_node cannot exist in it
+		unlock(list);
+		free(node_wrapper);
+		return LLIST_NODE_NOT_FOUND;
+	}
 
 	if (iterator->node == pos_node) {
 		// it's the first node
@@ -350,7 +381,11 @@ int llist_insert_node(llist list, llist_node new_node, llist_node pos_node,
 		} else {
 			node_wrapper->next = iterator->next;
 			iterator->next = node_wrapper;
+			// inserting after the only node makes a new tail
+			if (node_wrapper->next == NULL)
+				((_llist *) list)->tail = node_wrapper;
 		}
+		((_llist *) list)->count++;
 		unlock(list);
 
 		return LLIST_SUCCESS;
@@ -366,7 +401,11 @@ int llist_insert_node(llist list, llist_node new_node, llist_node pos_node,
 				// now we stand on the pos node
 				node_wrapper->next = iterator->next;
 				iterator->next = node_wrapper;
+				// inserting after the tail makes a new tail
+				if (node_wrapper->next == NULL)
+					((_llist *) list)->tail = node_wrapper;
 			}
+			((_llist *) list)->count++;
 			unlock(list);
 			return LLIST_SUCCESS;
 		}
@@ -374,12 +413,10 @@ int llist_insert_node(llist list, llist_node new_node, llist_node pos_node,
 		iterator = iterator->next;
 	}
 
+	// pos_node was not found in the list
 	unlock(list);
-
-	assert(1 == 2);
-	// this assert will always fail. we assume that the function never gets here...
-	return LLIST_ERROR;
-
+	free(node_wrapper);
+	return LLIST_NODE_NOT_FOUND;
 }
 
 int llist_find_node(llist list, void *data, llist_node *found)
@@ -416,35 +453,36 @@ int llist_find_node(llist list, void *data, llist_node *found)
 
 llist_node llist_get_head(llist list)
 {
-	read_lock(list);
+	llist_node node = NULL;
 
-	if (list != NULL) {
-		if (((_llist *) list)->head) {      // there's at least one node
-			unlock(list);
-			return ((_llist *) list)->head->node;
-		}
-	}
-
-	unlock(list);
-
-	return NULL;
-}
-
-llist_node llist_get_tail(llist list)
-{
-	if (list != NULL)
+	if (list == NULL)
 		return NULL;
 
 	read_lock(list);
 
-	if (((_llist *) list)->tail) {      // there's at least one node
-		unlock(list);
-		return ((_llist *) list)->tail->node;
-	}
+	if (((_llist *) list)->head)      // there's at least one node
+		node = ((_llist *) list)->head->node;
 
 	unlock(list);
 
-	return NULL;
+	return node;
+}
+
+llist_node llist_get_tail(llist list)
+{
+	llist_node node = NULL;
+
+	if (list == NULL)
+		return NULL;
+
+	read_lock(list);
+
+	if (((_llist *) list)->tail)      // there's at least one node
+		node = ((_llist *) list)->tail->node;
+
+	unlock(list);
+
+	return node;
 }
 
 int llist_push(llist list, llist_node node)
@@ -461,6 +499,9 @@ llist_node llist_pop(llist list)
 {
 	llist_node tempnode = NULL;
 	_list_node *tempwrapper;
+
+	if (list == NULL)
+		return NULL;
 
 	write_lock(list);
 
@@ -487,26 +528,27 @@ int llist_concat(llist first, llist second)
 	if ((first == NULL) || (second == NULL))
 		return LLIST_NULL_ARGUMENT;
 
-	write_lock(first);
-	write_lock(second);
+	write_lock_two(first, second);
 
 	end_node = ((_llist *) first)->tail;
 
 	((_llist *) first)->count += ((_llist *) second)->count;
 
-	if (end_node != NULL) {  // if the first list is not empty
-		end_node->next = ((_llist *) second)->head;
-	} else { // It's empty
-		((_llist *) first)->head = ((_llist *) first)->tail =
-					       ((_llist *) second)->head;
+	if (((_llist *) second)->head != NULL) {  // nothing to do for an empty second
+		if (end_node != NULL)  // first is not empty, link the chains
+			end_node->next = ((_llist *) second)->head;
+		else                   // first is empty, adopt second's head
+			((_llist *) first)->head = ((_llist *) second)->head;
+
+		// the concatenated list ends where the second list ended
+		((_llist *) first)->tail = ((_llist *) second)->tail;
 	}
 
 	// Delete the nodes from the second list. (not really deletes them, only loses their reference.
 	((_llist *) second)->count = 0;
 	((_llist *) second)->head = ((_llist *) second)->tail = NULL;
 
-	unlock(first);
-	unlock(second);
+	unlock_two(first, second);
 
 	return LLIST_SUCCESS;
 }
@@ -558,11 +600,12 @@ int llist_sort(llist list, int flags)
 		return LLIST_COMPERATOR_MISSING;
 
 	write_lock(list);
-	thelist->head = listsort(thelist->head, &thelist->tail, cmp, flags);
+	// listsort() dereferences the tail unconditionally, guard the empty list
+	if (thelist->head != NULL)
+		thelist->head = listsort(thelist->head, &thelist->tail, cmp,
+					 flags);
 	unlock(list);
-	/*
-	 * TODO: update list tail.
-	 */
+
 	return LLIST_SUCCESS;
 }
 
@@ -665,7 +708,15 @@ static int llist_get_min_max(llist list, llist_node *output, bool max)
 	if (cmp == NULL)
 		return LLIST_COMPERATOR_MISSING;
 
+	read_lock(list);
+
 	_list_node *iterator = ((_llist *) list)->head;
+
+	if (iterator == NULL) {   // empty list, there's no min/max
+		unlock(list);
+		return LLIST_NODE_NOT_FOUND;
+	}
+
 	*output = iterator->node;
 	iterator = iterator->next;
 	while (iterator) {
@@ -680,6 +731,8 @@ static int llist_get_min_max(llist list, llist_node *output, bool max)
 		}
 		iterator = iterator->next;
 	}
+
+	unlock(list);
 
 	return LLIST_SUCCESS;
 }
@@ -699,12 +752,74 @@ bool llist_is_empty(llist list)
 	return (!llist_size(list));
 }
 
-/*
- * TODO: Implement the below functions
- */
-
 int llist_merge(llist first, llist second)
 {
-	assert(1 == 0);  // Fail, function not implemented yet.
-	return LLIST_NOT_IMPLEMENTED;
+	_llist *l1, *l2;
+	_list_node *p1, *p2, *rest;
+	_list_node *merged_head = NULL, *merged_tail = NULL, *pick;
+	comperator cmp;
+
+	if ((first == NULL) || (second == NULL))
+		return LLIST_NULL_ARGUMENT;
+
+	l1 = (_llist *) first;
+	l2 = (_llist *) second;
+
+	cmp = l1->comp_func;
+	if (cmp == NULL)
+		return LLIST_COMPERATOR_MISSING;
+
+	write_lock_two(first, second);
+
+	p1 = l1->head;
+	p2 = l2->head;
+
+	/*
+	 * Classic merge of two already sorted lists. The relative order of the
+	 * two inputs decides the order of the result, so callers should sort
+	 * both lists (same direction) beforehand.
+	 */
+	while (p1 && p2) {
+		if (cmp(p1->node, p2->node) <= 0) {
+			pick = p1;
+			p1 = p1->next;
+		} else {
+			pick = p2;
+			p2 = p2->next;
+		}
+
+		if (merged_tail)
+			merged_tail->next = pick;
+		else
+			merged_head = pick;
+
+		merged_tail = pick;
+	}
+
+	// append whatever is left of the non-exhausted list
+	rest = p1 ? p1 : p2;
+	while (rest) {
+		if (merged_tail)
+			merged_tail->next = rest;
+		else
+			merged_head = rest;
+
+		merged_tail = rest;
+		rest = rest->next;
+	}
+
+	if (merged_tail)
+		merged_tail->next = NULL;
+
+	l1->head = merged_head;
+	l1->tail = merged_tail;
+	l1->count += l2->count;
+
+	// the second list's nodes now belong to the first list
+	l2->head = l2->tail = NULL;
+	l2->count = 0;
+
+	unlock_two(first, second);
+
+	return LLIST_SUCCESS;
 }

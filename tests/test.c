@@ -505,6 +505,187 @@ START_TEST(llist_11_find_min_max)
 }
 END_TEST
 
+START_TEST(llist_12_get_head_tail)
+{
+	llist listToTest = llist_create(trivial_comperator, trivial_equal,
+					test_mt ? FLAG_MT_SUPPORT : 0);
+
+	llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
+	llist_add_node(listToTest, (llist_node) 2, ADD_NODE_REAR);
+	llist_add_node(listToTest, (llist_node) 3, ADD_NODE_REAR);
+
+	ck_assert_ptr_eq(llist_get_head(listToTest), (llist_node) 1);
+	/* get_tail used to be inverted and always returned NULL */
+	ck_assert_ptr_eq(llist_get_tail(listToTest), (llist_node) 3);
+
+	llist_destroy(listToTest, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_13_delete_tail_keeps_tail_valid)
+{
+	int retval;
+	llist listToTest = llist_create(trivial_comperator, trivial_equal,
+					test_mt ? FLAG_MT_SUPPORT : 0);
+
+	llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
+	llist_add_node(listToTest, (llist_node) 2, ADD_NODE_REAR);
+	llist_add_node(listToTest, (llist_node) 3, ADD_NODE_REAR);
+
+	/* deleting the tail through the traversal path used to leave a
+	 * dangling tail pointer; adding to the rear afterwards must work */
+	retval = llist_delete_node(listToTest, (llist_node) 3, false, NULL);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);
+	ck_assert_ptr_eq(llist_get_tail(listToTest), (llist_node) 2);
+
+	llist_add_node(listToTest, (llist_node) 9, ADD_NODE_REAR);
+	ck_assert_ptr_eq(llist_get_tail(listToTest), (llist_node) 9);
+	ck_assert_int_eq(llist_size(listToTest), 3);
+
+	llist_destroy(listToTest, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_14_insert_edges)
+{
+	int retval;
+	llist_node retptr;
+	llist listToTest = llist_create(trivial_comperator, trivial_equal,
+					test_mt ? FLAG_MT_SUPPORT : 0);
+
+	llist_add_node(listToTest, (llist_node) 1, ADD_NODE_REAR);
+
+	/* inserting after the (only, and last) node must update the tail */
+	retval = llist_insert_node(listToTest, (llist_node) 2, (llist_node) 1,
+				   ADD_NODE_AFTER);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);
+	ck_assert_ptr_eq(llist_get_tail(listToTest), (llist_node) 2);
+
+	/* inserting relative to a non-existent position must fail cleanly
+	 * and must not corrupt the node count */
+	retval = llist_insert_node(listToTest, (llist_node) 7, (llist_node) 99,
+				   ADD_NODE_AFTER);
+	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);
+	ck_assert_int_eq(llist_size(listToTest), 2);
+
+	retval = llist_find_node(listToTest, (llist_node) 7, &retptr);
+	ck_assert_int_eq(retval, LLIST_NODE_NOT_FOUND);
+
+	llist_destroy(listToTest, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_15_concat)
+{
+	int retval;
+	llist first = llist_create(trivial_comperator, trivial_equal,
+				   test_mt ? FLAG_MT_SUPPORT : 0);
+	llist second = llist_create(trivial_comperator, trivial_equal,
+				    test_mt ? FLAG_MT_SUPPORT : 0);
+
+	llist_add_node(first, (llist_node) 1, ADD_NODE_REAR);
+	llist_add_node(first, (llist_node) 2, ADD_NODE_REAR);
+	llist_add_node(second, (llist_node) 3, ADD_NODE_REAR);
+	llist_add_node(second, (llist_node) 4, ADD_NODE_REAR);
+
+	retval = llist_concat(first, second);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);
+	ck_assert_int_eq(llist_size(first), 4);
+
+	/* concat used to leave first->tail pointing mid-list */
+	ck_assert_ptr_eq(llist_get_tail(first), (llist_node) 4);
+	llist_add_node(first, (llist_node) 5, ADD_NODE_REAR);
+	ck_assert_ptr_eq(llist_get_tail(first), (llist_node) 5);
+	ck_assert_int_eq(llist_size(first), 5);
+
+	llist_destroy(first, false, NULL);
+	llist_destroy(second, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_16_merge)
+{
+	int retval;
+	llist first = llist_create(trivial_comperator, trivial_equal,
+				   test_mt ? FLAG_MT_SUPPORT : 0);
+	llist second = llist_create(trivial_comperator, trivial_equal,
+				    test_mt ? FLAG_MT_SUPPORT : 0);
+
+	/* two already-sorted lists */
+	llist_add_node(first, (llist_node) 1, ADD_NODE_REAR);
+	llist_add_node(first, (llist_node) 3, ADD_NODE_REAR);
+	llist_add_node(first, (llist_node) 5, ADD_NODE_REAR);
+	llist_add_node(second, (llist_node) 2, ADD_NODE_REAR);
+	llist_add_node(second, (llist_node) 4, ADD_NODE_REAR);
+	llist_add_node(second, (llist_node) 6, ADD_NODE_REAR);
+
+	/* merge was previously an assert()/NOT_IMPLEMENTED stub */
+	retval = llist_merge(first, second);
+	ck_assert_int_eq(retval, LLIST_SUCCESS);
+	ck_assert_int_eq(llist_size(first), 6);
+	ck_assert_int_eq(llist_size(second), 0);
+
+	/* the merged list must be fully sorted 1..6 */
+	for (unsigned long i = 1; i <= 6; i++)
+		ck_assert_int_eq((unsigned long) llist_pop(first), i);
+
+	llist_destroy(first, false, NULL);
+	llist_destroy(second, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_17_empty_list_ops)
+{
+	llist_node out;
+	llist listToTest = llist_create(trivial_comperator, trivial_equal,
+					test_mt ? FLAG_MT_SUPPORT : 0);
+
+	/* none of these must crash on an empty list */
+	ck_assert_int_eq(llist_is_empty(listToTest), true);
+	ck_assert_ptr_eq(llist_get_head(listToTest), NULL);
+	ck_assert_ptr_eq(llist_get_tail(listToTest), NULL);
+	ck_assert_ptr_eq(llist_pop(listToTest), NULL);
+	ck_assert_int_eq(llist_sort(listToTest, SORT_LIST_ASCENDING),
+			 LLIST_SUCCESS);
+	ck_assert_int_eq(llist_get_max(listToTest, &out), LLIST_NODE_NOT_FOUND);
+	ck_assert_int_eq(llist_get_min(listToTest, &out), LLIST_NODE_NOT_FOUND);
+	ck_assert_int_eq(llist_insert_node(listToTest, (llist_node) 1,
+					   (llist_node) 1, ADD_NODE_AFTER),
+			 LLIST_NODE_NOT_FOUND);
+
+	llist_destroy(listToTest, false, NULL);
+}
+END_TEST
+
+START_TEST(llist_18_null_arguments)
+{
+	llist_node out;
+
+	/* pointer-returning APIs must tolerate a NULL list */
+	ck_assert_ptr_eq(llist_get_head(NULL), NULL);
+	ck_assert_ptr_eq(llist_get_tail(NULL), NULL);
+	ck_assert_ptr_eq(llist_pop(NULL), NULL);
+	ck_assert_ptr_eq(llist_peek(NULL), NULL);
+
+	/* int-returning APIs must report the NULL argument */
+	ck_assert_int_eq(llist_add_node(NULL, (llist_node) 1, ADD_NODE_REAR),
+			 LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_delete_node(NULL, (llist_node) 1, false, NULL),
+			 LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_insert_node(NULL, (llist_node) 1, (llist_node) 1,
+					   ADD_NODE_AFTER), LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_find_node(NULL, (llist_node) 1, &out),
+			 LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_sort(NULL, SORT_LIST_ASCENDING),
+			 LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_reverse(NULL), LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_concat(NULL, NULL), LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_merge(NULL, NULL), LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_get_max(NULL, &out), LLIST_NULL_ARGUMENT);
+	ck_assert_int_eq(llist_get_min(NULL, &out), LLIST_NULL_ARGUMENT);
+}
+END_TEST
+
 Suite *liblist_suite(void)
 {
 	Suite *s = suite_create("Lib linked list tester");
@@ -523,6 +704,13 @@ Suite *liblist_suite(void)
 	tcase_add_test(tc_core, llist_08_list_reverse);
 	tcase_add_test(tc_core, llist_09_list_sort);
 	tcase_add_test(tc_core, llist_11_find_min_max);
+	tcase_add_test(tc_core, llist_12_get_head_tail);
+	tcase_add_test(tc_core, llist_13_delete_tail_keeps_tail_valid);
+	tcase_add_test(tc_core, llist_14_insert_edges);
+	tcase_add_test(tc_core, llist_15_concat);
+	tcase_add_test(tc_core, llist_16_merge);
+	tcase_add_test(tc_core, llist_17_empty_list_ops);
+	tcase_add_test(tc_core, llist_18_null_arguments);
 
 	//really multithreaded test case
 	tcase_add_test(tc_mt, llist_01_create_delete_lists);
@@ -536,6 +724,13 @@ Suite *liblist_suite(void)
 	tcase_add_test(tc_mt, llist_09_list_sort);
 	tcase_add_test(tc_mt, llist_10_pure_add_delete_mt);
 	tcase_add_test(tc_mt, llist_11_find_min_max);
+	tcase_add_test(tc_mt, llist_12_get_head_tail);
+	tcase_add_test(tc_mt, llist_13_delete_tail_keeps_tail_valid);
+	tcase_add_test(tc_mt, llist_14_insert_edges);
+	tcase_add_test(tc_mt, llist_15_concat);
+	tcase_add_test(tc_mt, llist_16_merge);
+	tcase_add_test(tc_mt, llist_17_empty_list_ops);
+	tcase_add_test(tc_mt, llist_18_null_arguments);
 
 	suite_add_tcase(s, tc_core);
 	suite_add_tcase(s, tc_mt);

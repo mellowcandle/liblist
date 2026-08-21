@@ -2,7 +2,7 @@ liblist - by Ramon Fried (2013)
 =======
 Generic linked list management library in C
 
-[![Build Status](https://travis-ci.org/mellowcandle/liblist.svg?branch=master)](https://travis-ci.org/mellowcandle/liblist)
+[![CI](https://github.com/mellowcandle/liblist/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/mellowcandle/liblist/actions/workflows/ci.yml)
 
 Prerequisites
 =============

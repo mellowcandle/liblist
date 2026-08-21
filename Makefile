@@ -1,12 +1,12 @@
 .PHONY: all tests runtests clean install doc
 
 LLIST_OPTS   =
-CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinclude
+CFLAGS       = -g -Wall -pedantic -std=gnu99 -Iinc
 EXTRA_FLAGS  = -fPIC -shared -fprofile-arcs -ftest-coverage
 LIBFLAGS	 = -fPIC -shared -fprofile-arcs
 LDFLAGS	     = -shared
 DEBUGFLAGS   = -O0 -D _DEBUG
-RELEASEFLAGS = -O2 -D NDEBUG -combine -fwhole-program
+RELEASEFLAGS = -O2 -D NDEBUG
 TEST_LDFLAGS = -lcheck -lpthread -L$(OBJDIR) -lllist -lm -lrt
 
 OBJDIR	= lib
@@ -30,7 +30,7 @@ tests: $(TEST_OBJECTS)
 	$(CC) $(FLAGS) -o $(TEST_TARGET) $(TEST_OBJECTS) $(TEST_LDFLAGS)
 
 # Need a special rule to compile the lib to allow EXTRA_FLAGS
-$(OBJECTS): $(SOURCES) $(HEADERS)
+src/%.o: src/%.c $(HEADERS)
 	@echo [Compiling]: $<
 	$(CC) $(CFLAGS) $(LLIST_OPTS) $(EXTRA_FLAGS) -o $@ -c $<
 
